@@ -9,7 +9,7 @@ D_c_inh = 3.5 * 10e-7
 D_act = 6.9 * 10e-11
 D_c_act = 5.9 * 10e-6
 
-#"undefined" parameters
+#"undefined" parameters / parameters that we do not have the values for yet
 h = 1
 cm = 1
 n = 1
@@ -43,18 +43,12 @@ def spatial_part(nc:np.array, dx:float = 1):
     """
     n, c = nc
     #computing laplacians - we are applying the 1D finite difference numerical scheme
-    ninh_plus = np.roll(n, shift = dx)
-    ninh_min = np.roll(n, shift = -dx)
-    nact_plus = np.roll(n, shift = dx)
-    nact_min = np.roll(n, shift = -dx)
-    cinh_plus = np.roll(c, shift = dx)
-    cinh_min = np.roll(c, shift = -dx)
-    cact_plus = np.roll(c, shift = dx)
-    cact_min = np.roll(c, shift = -dx)
-    lap_ninh_plus = ninh_plus - 2*n + ninh_min
-    lap_nact_plus = nact_plus - 2*n + nact_min
-    lap_cinh_plus = cinh_plus - 2*c + cinh_min
-    lap_cact_plus = cact_plus - 2*c + cact_min
+    n_plus = np.roll(n, shift = dx)
+    n_min = np.roll(n, shift = -dx)
+    c_plus = np.roll(c, shift = dx)
+    c_min = np.roll(c, shift = -dx)
+    lap_n = n_plus - 2*n + n_min
+    lap_c = c_plus - 2*c + c_min
 
     #the functions:
     sc_act = k * (((2*cm * (n-beta)*c) / (cm**2 + c**2)) + beta)
