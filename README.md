@@ -1,10 +1,8 @@
-# Mathematical-Modeling-Project
-# Modelling Epidermal Wound Healing
+# Mathematical Modeling Project: Modelling Epidermal Wound Healing
 
 
 
 ### Git control:
-Useful:
 
 git branch --delete branch-name
 
