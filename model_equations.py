@@ -12,15 +12,14 @@ D_inh = 3.5 * 10e-10
 D_c_inh = 3.5 * 10e-7
 D_act = 6.9 * 10e-11
 D_c_act = 5.9 * 10e-6
+alpha = 0.1
+h = 10
+cm = 40
 
 #"undefined" parameters / parameters that we do not have the values for yet
-h = 1
-cm = 1
-n = 1
 beta = 1
 c0 = 1
 n0 = 1
-alpha = 1
 
 #we need 2 dimensional array because we only have n, c
 def create_array(N:int): #not sure this condition still applies here?
