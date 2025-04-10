@@ -17,12 +17,13 @@ beta = 1
 c0 = 1
 n0 = 1
 alpha = 1
+lam = 1
 
 
 
 
 #we need 2 dimensional array because we only have n, c
-def create_array(N:int):
+def create_array(N:int): #not sure this condition still applies here?
     """
     Returns an initial condition 4D array with noise of length N.
     Parameters:
@@ -32,12 +33,13 @@ def create_array(N:int):
     nc = nc + np.random.uniform(0, 1, (2, N))/100 #1% amplitude additive noise
     return nc
     
-def spatial_part(nc:np.array, dx:float = 1):
+def spatial_part(nc:np.array, dx:float = 1, reaction:str = "activator"):
     """
     Implements a 1D finite difference numerical approximation to integrate the spatial part of the reaction-diffusion equations.
     Parameters:
-        uv: a 2D array of initial conditions for u and v
+        nc: a 2D array of initial conditions for n and c
         dx: the spatial step
+        reaction: either activator or inhibitor
     Returns:
         A tuple (ut, vt) of the PDEs
     """
@@ -57,8 +59,15 @@ def spatial_part(nc:np.array, dx:float = 1):
     fn_inh = lambda_inh * c0 * n / n0
 
     #the pdes:
-    ninh_t = lap_
-    ut = d1 * lap_u + gam * f
-    vt = d2 * lap_v + gam * g
+    ninh_t = lap_n + sc_inh * n * (2-n/n0) - k*n
+    nact_t = lap_n + sc_act * n * (2-n/n0) - k*n
+    cinh_t = lap_c + fn_inh - lam * c
+    cact_t = lap_c + fn_act - lam * c
 
-    return (ut, vt)
+    if reaction == "activator":
+        return (nact_t, cact_t)
+    elif reaction == "inhibitor":
+        return (ninh_t, cinh_t)
+    else:
+        raise ValueError("Invalid reaction value. Please use 'activator' or 'inhibitor' only.")
+
