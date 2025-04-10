@@ -21,7 +21,6 @@ beta = 1
 c0 = 1
 n0 = 1
 alpha = 1
-lam = 1
 
 #we need 2 dimensional array because we only have n, c
 def create_array(N:int): #not sure this condition still applies here?
@@ -64,8 +63,8 @@ def spatial_part(nc:np.array, dx:float = 1, reaction:str = "activator"):
     #the pdes:
     ninh_t = lap_n + sc_inh * n * (2-n/n0) - k*n
     nact_t = lap_n + sc_act * n * (2-n/n0) - k*n
-    cinh_t = lap_c + fn_inh - lam * c
-    cact_t = lap_c + fn_act - lam * c
+    cinh_t = lap_c + fn_inh - lambda_inh * c
+    cact_t = lap_c + fn_act - lambda_act * c
 
     if reaction == "activator":
         return (nact_t, cact_t)
