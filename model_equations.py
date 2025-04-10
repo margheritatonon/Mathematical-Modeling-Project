@@ -16,10 +16,11 @@ alpha = 0.1
 h = 10
 cm = 40
 
-#"undefined" parameters / parameters that we do not have the values for yet
-beta = 1
+#these are the initial condition parameters
 c0 = 1
 n0 = 1
+
+beta = ((c0)**2 + (cm)**2 - 2 * h * c0 * cm)/((c0-cm)**2)
 
 #we need 2 dimensional array because we only have n, c
 def create_array(N:int): #not sure this condition still applies here?
@@ -116,7 +117,7 @@ def plot_static():
     fig, ax = plt.subplots(1, 1)
     plt.plot(x_arr, carr_updates[-1])
     ax.set_xlim((0, region_length))
-    ax.set_ylim((0, 5))
+    ax.set_ylim((0, 20))
     plt.xlabel("x", fontsize = 15)
     plt.ylabel("v(x)", fontsize = 15)
     plt.title("Final frame for the concentration of mitosis regulating chemical")
