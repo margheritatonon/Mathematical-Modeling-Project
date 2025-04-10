@@ -1,6 +1,9 @@
 import numpy as np
 
-#defining parameters
+#defining script parameters:
+region_length = 40
+
+#defining parameters of the actual model
 lambda_inh = 0.05
 lambda_act = 0.3
 k = 0.01
@@ -32,6 +35,8 @@ def create_array(N:int): #not sure this condition still applies here?
     nc = np.ones((2, N)) #homogeneous stationary solution 
     nc = nc + np.random.uniform(0, 1, (2, N))/100 #1% amplitude additive noise
     return nc
+
+nc = create_array(region_length)
     
 def spatial_part(nc:np.array, dx:float = 1, reaction:str = "activator"):
     """
@@ -71,3 +76,33 @@ def spatial_part(nc:np.array, dx:float = 1, reaction:str = "activator"):
     else:
         raise ValueError("Invalid reaction value. Please use 'activator' or 'inhibitor' only.")
 
+nact_t, cact_t = spatial_part(nc, reaction = "activator")
+ninh_t, cinh_t = spatial_part(nc, reaction = "inhibitor")
+
+def eulers_method_pde(dt:float = 0.01):
+    """
+    Numerically integrates array nc obtained from spatial_part function using Explicit Euler's method.
+    Parameters:
+        dt: float specifying the time step for numerical integration.
+    Returns a tuple of lists with 100 elements (frames) each.
+    """
+     
+    narr_updates = []
+    carr_updates = []
+
+    for i in range(50000): 
+        ut, vt = spatial_part(nc)
+        #updating with explicit eulers method
+        if i % 500 == 0: #appending every 500 iterations
+            narr_updates.append(np.copy(nc[0]))
+        nc[0] = nc[0] + ut * dt
+
+        if i % 500 == 0:
+            carr_updates.append(np.copy(nc[1]))
+        nc[1] = nc[1] + vt * dt
+
+        #boundary conditions:
+        nc[:, 0] = nc[:, 1]
+        nc[:, -1] = nc[:, -2]
+    
+    return (narr_updates, carr_updates)
