@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 #defining script parameters:
 region_length = 40
@@ -22,13 +23,10 @@ n0 = 1
 alpha = 1
 lam = 1
 
-
-
-
 #we need 2 dimensional array because we only have n, c
 def create_array(N:int): #not sure this condition still applies here?
     """
-    Returns an initial condition 4D array with noise of length N.
+    Returns an initial condition 2D array with noise of length N.
     Parameters:
         N: the number of spatial points in the discretization
     """
@@ -79,7 +77,7 @@ def spatial_part(nc:np.array, dx:float = 1, reaction:str = "activator"):
 nact_t, cact_t = spatial_part(nc, reaction = "activator")
 ninh_t, cinh_t = spatial_part(nc, reaction = "inhibitor")
 
-def eulers_method_pde(dt:float = 0.01):
+def eulers_method_pde(dt:float = 0.01, reaction:str = "activator"):
     """
     Numerically integrates array nc obtained from spatial_part function using Explicit Euler's method.
     Parameters:
@@ -91,7 +89,7 @@ def eulers_method_pde(dt:float = 0.01):
     carr_updates = []
 
     for i in range(50000): 
-        ut, vt = spatial_part(nc)
+        ut, vt = spatial_part(nc, reaction = reaction)
         #updating with explicit eulers method
         if i % 500 == 0: #appending every 500 iterations
             narr_updates.append(np.copy(nc[0]))
@@ -106,3 +104,28 @@ def eulers_method_pde(dt:float = 0.01):
         nc[:, -1] = nc[:, -2]
     
     return (narr_updates, carr_updates)
+
+narr_updates, carr_updates = eulers_method_pde()
+
+def plot_static():
+    """
+    Creates a static plot of the last frame of animation of x versus c. 
+    """
+    #static plot:
+    x_arr = np.linspace(0, region_length, region_length)
+    print(f"x_arr = {x_arr.shape}")
+    print(f"varr_updates[-1] = {carr_updates[-1].shape}")
+    fig, ax = plt.subplots(1, 1)
+    plt.plot(x_arr, carr_updates[-1])
+    ax.set_xlim((0, region_length))
+    ax.set_ylim((0, 5))
+    plt.xlabel("x", fontsize = 15)
+    plt.ylabel("v(x)", fontsize = 15)
+    plt.title("Final frame for the concentration of mitosis regulating chemical")
+    plt.show()
+
+plot_static()
+
+
+if __name__ == "__main__":
+    pass
