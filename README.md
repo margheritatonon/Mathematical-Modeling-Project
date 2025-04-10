@@ -18,4 +18,5 @@ git push origin branch-name
 git pull to update the changes from the website into VSCode
 
 
+
 to change the branch you are in: git checkout branch-name-you-go-to
