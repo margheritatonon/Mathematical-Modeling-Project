@@ -25,3 +25,7 @@ git pull to update the changes from the website into VSCode
 
 
 to change the branch you are in: git checkout branch-name-you-go-to
+
+
+### Related Resources:
+* https://www.youtube.com/watch?v=lN2lDMN3Zx4&list=TLPQMjkwNDIwMjUReOxoHvmmnQ&index=2
