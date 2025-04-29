@@ -7,7 +7,7 @@ import matplotlib.animation as animation
 
 #defining parameter values
 D = 1
-gamma = 0.5
+gamma = 1
 region_length = 40
 
 def create_array(N:int, region_length = region_length): 
@@ -117,7 +117,23 @@ def animate_plot(region_length, uarr_updates):
     plt.show()
     plt.close()
 
-#TODO: maybe a function that plots the initial and the final to see how they compare / if anything changed after the evolution of the system.
+def plot_initial_final(region_length, uarr_updates):
+    """
+    Creates a plot comparing the initial and final frame of the system.
+    """
+    x_arr = np.linspace(0, region_length, region_length)
+    fig, ax = plt.subplots(1, 1)
+    plt.plot(x_arr, uarr_updates[0], label="Initial State", color="blue")
+    plt.plot(x_arr, uarr_updates[-1], label="Final State", color="red")
+    
+    ax.set_xlim((0, region_length))
+    ax.set_ylim((np.min(uarr_updates) * 0.75, np.max(uarr_updates) * 1.5))
+    plt.xlabel("x", fontsize=15)
+    plt.ylabel("u(x)", fontsize=15)
+    plt.title(f"Initial Versus Final State", fontsize=20)
+    plt.legend()
+    plt.show()
+    plt.close()
 
 if __name__ == "__main__":
     u = create_array(region_length) #creating u array (initial condition)
@@ -126,6 +142,7 @@ if __name__ == "__main__":
     print(uarr_updates)
     plot_static(region_length, uarr_updates)
     animate_plot(region_length, uarr_updates)
+    plot_initial_final(region_length, uarr_updates)
 
 
 
