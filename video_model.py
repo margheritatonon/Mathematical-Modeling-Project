@@ -86,7 +86,7 @@ def numerical_integration(u:np.array, ut:np.array, dt:float=0.01):
             uarr_updates.append(np.copy(u[0]))
         u = u + ut * dt
 
-        #boundary conditions:
+        #boundary conditions: TODO: check what boundary conditions should be used. this is using periodic?
         u[:, 0] = u[:, 1]
         u[:, -1] = u[:, -2]
     
