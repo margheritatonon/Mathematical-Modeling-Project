@@ -3,12 +3,18 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 
-#we begin by modeling ut = D * lap_u + gamma * u^2 * lap_u
+#MODEL TYPES:
+#simple model: ut = D * lap_u + gamma * u^2 * lap_u
+#cell diffusion (only): ut = D*lap_u
+#diffusion and growth: ut = D*lap_u + p*u*(1-u)
+#chemotaxis (only): ut = -X*lap_u*c*u --> need to figure out what c is here 
 
 #defining parameter values
-D = 1
+D = 0.1
 gamma = 1
+p = 0.05
 region_length = 40
+model = "diffusion and growth" #select the type of model you want to look at: "simple", "diffusion", "diffusion and growth"
 
 def create_array(N:int, region_length = region_length): 
     """
@@ -32,7 +38,7 @@ def create_array(N:int, region_length = region_length):
     #a strong bump:
     #u[0, N//3:N//3+5] += 1.5
 
-    #cells around edges of region:
+    #cells around edges of region (not sure this is the right approach, because im not sure if this code actually simulates the movement of the cells):
     u = np.ones((1, N)) 
     u[0, :4] = 2.0 + 0.2 * np.random.rand(4) #4 is the edge width: this can be changed depending on how big you want the edges of the wound to be
     u[0, -4:] = 2.0 + 0.2 * np.random.rand(4)
@@ -40,7 +46,7 @@ def create_array(N:int, region_length = region_length):
 
     return u
 
-def spatial_part(u, dx = 1):
+def spatial_part(u, model=model, dx = 1, gamma = gamma, p = p, D = D):
     """
     Implements a 1D finite difference numerical approximation to integrate the spatial part of the reaction-diffusion equations.
     Parameters:
@@ -55,7 +61,12 @@ def spatial_part(u, dx = 1):
     lap_u = u_plus - 2*u + u_min
 
     #using this in the equation (the simple one)
-    ut = D * lap_u + gamma * (u**2) * lap_u
+    if model == "simple":
+        ut = D * lap_u + gamma * (u**2) * lap_u
+    elif model == "diffusion":
+        ut = D * lap_u
+    elif model == "diffusion and growth":
+        ut = D * lap_u + p * u * (1 - u)
 
     return ut
 
@@ -134,6 +145,8 @@ def plot_initial_final(region_length, uarr_updates):
     plt.legend()
     plt.show()
     plt.close()
+
+#TODO: add a function that plots different frames of the animation in a static way (e.g. 2 by 2 plots of 4 frames over time)
 
 if __name__ == "__main__":
     u = create_array(region_length) #creating u array (initial condition)
