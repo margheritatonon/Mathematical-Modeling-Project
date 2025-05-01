@@ -59,10 +59,10 @@ def spatial_part(nc:np.array, dx:float = 1, reaction:str = "activator"):
     fn_inh = lambda_inh * c0 * n / n0
 
     #the pdes:
-    ninh_t = lap_n + sc_inh * n * (2-n/n0) - k*n
-    nact_t = lap_n + sc_act * n * (2-n/n0) - k*n
-    cinh_t = lap_c + fn_inh - lam * c
-    cact_t = lap_c + fn_act - lam * c
+    ninh_t = D_inh * lap_n + sc_inh * n * (2-n/n0) - k*n
+    nact_t = D_act * lap_n + sc_act * n * (2-n/n0) - k*n
+    cinh_t = D_c_inh * lap_c + fn_inh - lam * c
+    cact_t = D_c_act * lap_c + fn_act - lam * c
 
     if reaction == "activator":
         return (nact_t, cact_t)
