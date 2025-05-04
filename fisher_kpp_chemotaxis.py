@@ -3,11 +3,48 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from fisher_kpp import create_array, D, r, N
 
-alpha = 3 #chemotaxis parameter
-k = 1 #degradation rate of the chemotactic signal
+alpha = 0.1 #chemotaxis parameter
+k = 0.1 #degradation rate of the chemotactic signal
 
-def create_chemotaxis_array(N:int):
-    nc = np.zeros((2, N, N)) #starting point
+def create_chemotaxis_array(N:int, shape:str = "circle"):
+    """
+    Returns an initial condition 2D array.
+    Parameters:
+        N: the number of spatial points in the discretization
+        shape: the shape of the initial condition (e.g., "circle", "rectangle", "oval", "elongated rectangle")
+    """
+
+    #ones, as we are assuming the monolayer is at confluence at t=0
+    nc = np.ones((2, N, N)) #2D array
+    #c is going to remain 1 everywhere at the start of the simulation.
+
+    #we can simulate different initial cell patterns here (different shapes of the zone of 0s)
+    #circle:
+    if shape == "circle":
+        center = N // 2
+        radius = N // 5
+        Y, X = np.ogrid[:N, :N]
+        distance = np.sqrt((X - center)**2 + (Y - center)**2)
+        mask = distance <= radius
+        #s
+        nc[0][mask] = 0
+        return nc
+
+    #rectangle:
+    if shape == "rectangle":
+        nc[0][N//4:N//2, N//4:N//2] = 0
+        return nc
+
+    #oval:
+    if shape == "oval":
+        center = N // 2
+        height = N // 4 
+        width = N // 6       
+        Y, X = np.ogrid[:N, :N]
+        mask = ((X - center)**2) / (width**2) + ((Y - center)**2) / (height**2) <= 1
+
+        nc[0][mask] = 0
+        return nc
 
 def chemotaxis_eqs(nc):
     """
@@ -33,7 +70,7 @@ def chemotaxis_eqs(nc):
     lap_c_5 = c_up + c_down + c_left + c_right - 4*c
 
     #equations:
-    dndt = D * lap_n_5 - alpha * (n / (c + 1e-10)) * lap_c_5 + r * n * (1-n) #need to do + 1e-10 to avoid division by 0 errors that blow up the simulation
+    dndt = D * lap_n_5 - alpha * (n / np.clip(c, 1e-3, None)) * lap_c_5 + r * n * (1-n) #need to do + 1e-10 to avoid division by 0 errors that blow up the simulation
     dcdt = -k * n
 
     return (dndt, dcdt)
@@ -49,8 +86,9 @@ def numerical_integration_explicit_eulers(nc, dt = 0.01, num_iters = 50000):
     for i in range(num_iters): 
         nt, ct = chemotaxis_eqs(nc) #recomputing the PDEs
 
-        nc[0] = nc[0] + nt * dt #updating u 
-        nc[1] = nc[1] + ct * dt #updating v
+        nc[0] = nc[0] + nt * dt #updating n
+        nc[1] = nc[1] + ct * dt #updating c
+        nc[1] = np.maximum(nc[1], 0) #prevent chemical from going negative
 
         #Boundary conditions:
         #dirichlet on vertical sides, there are always cells surrounding the wound: u = 1
@@ -92,9 +130,36 @@ def animate_celldensity(narr_updates, N):
     plt.title(f"2D Fisher-KPP Model with Chemotaxis: Cell Density Animation", fontsize=19)
     plt.show()
 
+def animate_chemical(carr_updates, N):
+    """
+    Creates an animation of the chemical concentration over time.
+    """
+    fig, ax = plt.subplots(1, 1)
+    im = ax.imshow(
+    	carr_updates[0],
+    	interpolation="bilinear",
+    	vmin=0,
+    	vmax=1,
+    	origin="lower",
+    	extent=[0, N, 0, N],
+	)
+
+    def update(frame):
+        im.set_array(carr_updates[frame])
+        #im.set_clim(vmin=np.min(carr_updates[frame]), vmax=np.max(carr_updates[frame]) + 0.01)
+        return (im, )
+    
+
+    ani = animation.FuncAnimation(
+    	fig, update, interval=50, blit=True, frames = len(carr_updates), repeat = False
+	)
+    plt.title(f"2D Fisher-KPP Model with Chemotaxis: Chemical Concntration Animation", fontsize=19)
+    plt.show()
+
 
 if __name__ == "__main__":
     nc = create_array(N, shape = "oval")
     nt, ct = chemotaxis_eqs(nc)
     narr_updates, carr_updates = numerical_integration_explicit_eulers(nc)
-    animate_celldensity(narr_updates, N)
+    #animate_celldensity(narr_updates, N)
+    animate_chemical(carr_updates, N)
