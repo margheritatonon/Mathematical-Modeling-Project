@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-D = 1
-r = 1
+D = 0.05 #according to the paper, D can range anywhere from 10e-8 to 0.15
+r = 0.1 #according to the paper, r can range anywhere from 10e-6 to 0.5
 N  = 100 
 
 def create_array(N:int, shape:str = "circle"):
