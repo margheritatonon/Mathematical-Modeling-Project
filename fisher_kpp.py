@@ -105,11 +105,38 @@ def numerical_integration_explicit_eulers(uv:np.array, dt:float=0.01, num_iters:
         uv[0][0, :] = uv[0][1, :]
         uv[0][-1, :] = uv[0][-2, :]
 
-        if i % 500 == 0: #appending every 500 iterations
+        if i % 50 == 0: #appending every 50 iterations
             uarr_updates.append(np.copy(uv[0]))
             varr_updates.append(np.copy(uv[1]))
     
     return uarr_updates, varr_updates
+
+def animate_plot(single_integrated_array, N):
+    """
+    Animates the plot of the numerically integrated solution.
+    Single_integrated_array is the array of u or v values, after numerical integration.
+    """
+    fig, ax = plt.subplots(1, 1)
+    im = ax.imshow(
+    	single_integrated_array[0],
+    	interpolation="bilinear",
+    	vmin=0,
+    	vmax=1,
+    	origin="lower",
+    	extent=[0, N, 0, N],
+	)
+
+    def update(frame):
+        im.set_array(single_integrated_array[frame])
+        im.set_clim(vmin=np.min(single_integrated_array[frame]), vmax=np.max(single_integrated_array[frame]) + 0.01)
+        return (im, )
+    
+
+    ani = animation.FuncAnimation(
+    	fig, update, interval=200, blit=True, frames = len(single_integrated_array), repeat = False
+	)
+    plt.title(f"2D Fisher-KPP Model", fontsize=19)
+    plt.show()
 
 
 
@@ -122,4 +149,6 @@ if __name__ == "__main__":
     ut, vt = fisher_kpp(uv)
 
     uarr_updates, varr_updates = numerical_integration_explicit_eulers(uv)
+
+    animate_plot(uarr_updates, N)
     
