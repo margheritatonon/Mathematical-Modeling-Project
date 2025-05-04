@@ -128,12 +128,12 @@ def animate_plot(single_integrated_array, N):
 
     def update(frame):
         im.set_array(single_integrated_array[frame])
-        im.set_clim(vmin=np.min(single_integrated_array[frame]), vmax=np.max(single_integrated_array[frame]) + 0.01)
+        #im.set_clim(vmin=np.min(single_integrated_array[frame]), vmax=np.max(single_integrated_array[frame]) + 0.01)
         return (im, )
     
 
     ani = animation.FuncAnimation(
-    	fig, update, interval=200, blit=True, frames = len(single_integrated_array), repeat = False
+    	fig, update, interval=150, blit=True, frames = len(single_integrated_array), repeat = False
 	)
     plt.title(f"2D Fisher-KPP Model", fontsize=19)
     plt.show()
