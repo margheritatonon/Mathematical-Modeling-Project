@@ -54,9 +54,72 @@ def create_array(N:int, shape:str = "circle"):
         uv[1][mask] = 0
         return uv
 
+def fisher_kpp(uv):
+    """
+    Sets up the Fisher-KPP model for array uv, returning the PDEs du/dt and dv/dt.
+    """
+    u, v = uv
+    #computing laplacians - we are applying the 2D finite difference numerical scheme
+    #moving up
+    u_up = np.roll(u, shift=1, axis=0)
+    v_up = np.roll(v, shift=1, axis=0)
+    #moving down
+    u_down = np.roll(u, shift=-1, axis=0)
+    v_down = np.roll(v, shift = -1, axis = 0)
+    #moving left
+    u_left = np.roll(u, shift=1, axis=1)
+    v_left = np.roll(v, shift=1, axis=1)
+    #moving right
+    u_right = np.roll(u, shift=-1, axis=1)
+    v_right = np.roll(v, shift=-1, axis = 1)
+
+    # 5 point stencil
+    lap_u_5 = u_up + u_down + u_left + u_right - 4*u 
+    lap_v_5 = v_up + v_down + v_left + v_right - 4*v
+
+    #the pdes:
+    ut = D * lap_u_5 + r * u * (1-u)
+    vt = D * lap_v_5 + r * v * (1-v)
+
+    return (ut, vt)
+
+def numerical_integration_explicit_eulers(uv:np.array, dt:float=0.01, num_iters:int=50000):
+    """
+    Numerically integrates array uv obtained from fisher_kpp function using Explicit Euler's method.
+    """
+
+    uarr_updates = []
+    varr_updates = []
+
+    for i in range(num_iters): 
+        ut, vt = fisher_kpp(uv) #recomputing the PDEs
+
+        uv[0] = uv[0] + ut * dt #updating u 
+        uv[1] = uv[1] + vt * dt #updating v
+
+        #Boundary conditions:
+        #dirichlet on vertical sides, there are always cells surrounding the wound: u = 1
+        uv[0][:, 0] = 1
+        uv[0][:, -1] = 1
+        #neumann on horizontal sides, cell flux along the horizontal sides is none: u = u (this is especially important for when the wound vertically extends and "touches" the top and bottom of the grid)
+        uv[0][0, :] = uv[0][1, :]
+        uv[0][-1, :] = uv[0][-2, :]
+
+        if i % 500 == 0: #appending every 500 iterations
+            uarr_updates.append(np.copy(uv[0]))
+            varr_updates.append(np.copy(uv[1]))
+    
+    return uarr_updates, varr_updates
+
+
+
 if __name__ == "__main__":
+
     uv = create_array(N, shape = "oval")
-    print(uv[0])
-    plt.imshow(uv[0], cmap='gray', origin='lower')
-    plt.show()
+    #plt.imshow(uv[0], cmap='gray', origin='lower')
+    #plt.show()
+
+    ut, vt = fisher_kpp(uv)
+
+    uarr_updates, varr_updates = numerical_integration_explicit_eulers(uv)
     
