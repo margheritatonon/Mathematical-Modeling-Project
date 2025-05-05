@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from fisher_kpp import create_array, D, r, N
+from fisher_kpp import D, r, N
 
 alpha = 0.1 #chemotaxis parameter
 k = 0.1 #degradation rate of the chemotactic signal
