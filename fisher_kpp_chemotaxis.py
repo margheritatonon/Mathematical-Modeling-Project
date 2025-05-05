@@ -161,8 +161,8 @@ def animate_chemical(carr_updates, N):
 
 
 if __name__ == "__main__":
-    nc = create_array(N, shape = "oval")
+    nc = create_chemotaxis_array(N, shape = "oval")
     nt, ct = chemotaxis_eqs(nc)
     narr_updates, carr_updates = numerical_integration_explicit_eulers(nc)
-    #animate_celldensity(narr_updates, N)
+    animate_celldensity(narr_updates, N)
     animate_chemical(carr_updates, N)
