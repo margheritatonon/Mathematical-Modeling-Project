@@ -133,7 +133,7 @@ def animate_plot(single_integrated_array, N):
     
 
     ani = animation.FuncAnimation(
-    	fig, update, interval=150, blit=True, frames = len(single_integrated_array), repeat = False
+    	fig, update, interval=50, blit=True, frames = len(single_integrated_array), repeat = False
 	)
     plt.title(f"2D Fisher-KPP Model", fontsize=19)
     plt.show()
