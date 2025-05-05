@@ -28,11 +28,13 @@ def create_chemotaxis_array(N:int, shape:str = "circle"):
         mask = distance <= radius
         #s
         nc[0][mask] = 0
+        nc[1] = 1 - nc[0]
         return nc
 
     #rectangle:
     if shape == "rectangle":
         nc[0][N//4:N//2, N//4:N//2] = 0
+        nc[1] = 1 - nc[0]
         return nc
 
     #oval:
@@ -44,6 +46,7 @@ def create_chemotaxis_array(N:int, shape:str = "circle"):
         mask = ((X - center)**2) / (width**2) + ((Y - center)**2) / (height**2) <= 1
 
         nc[0][mask] = 0
+        nc[1] = 1 - nc[0]
         return nc
 
 def chemotaxis_eqs(nc):
