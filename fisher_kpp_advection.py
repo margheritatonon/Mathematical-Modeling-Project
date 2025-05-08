@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from scipy import integrate
 
 #defining parameters:
 lambd = 7 
@@ -35,15 +36,43 @@ def wound(L=L):
 
 #defining a function as the expression inside the integral:
 def g(n):
-    return n*(lambd - n) #not sure how to do the multiplication here, because n is an array and lambd is a value
-
-def A(x, rho):
     """
-    This is the expression inside of the integral
+    Defines the function g for the array of n values.
+    """
+    return n * (lambd - n) 
+
+def h(xhat):
+    """
+    Defines the h(x) function for the array of values that neighbor the
+    Parameters:
+        xhat: the indices of the neighboring values of a certain value x.
+    """
+    return (0.1*np.arctan(0.2*xhat))/(np.arctan(2))
+
+def A(narr, currx, rho):
+    """
+    This is the expression inside of the integral.
+    Parameters:
+        narr: the array of current n values
+        currx: the x index we look at
+        rho: the radius we consider
     """
     #we first take the neighbors of x that are in a radius of rho away
+    #we therefore apply a mask
+    #the thing is that its one dimensional so we just take the neighbors of x + rho, x-rho
+    indices = np.arange(min(0, currx-rho), min(currx+rho, len(narr))) #prevents errors in indexing, in case currx-rho < 0 or currx+rho > the total array length
+    #now we index n with these indices
+    ns = narr[indices]
+    a = g(ns) * h(indices) #this is the expression that is inside of the integral
+    return a  #we will need to integrate a numerically, from -rho to rho.
 
-    return g()
+def integrating_expression(to_integrate, rho):
+    """
+    Integrates the to_integrate array using the trapezoidal rule.
+    """
+    x = np.linspace(-rho, rho, len(to_integrate)) #the integration bounds
+    result = integrate.trapezoid(to_integrate, x)
+    return result
 
 if __name__ == "__main__":
     myx0 = wound(L=L)
