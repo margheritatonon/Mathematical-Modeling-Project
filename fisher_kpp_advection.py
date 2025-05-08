@@ -98,6 +98,21 @@ def partial_wrt_x(expression, dx = 1):
 
     return derivative
 
+def laplacians(narr):
+    """
+    Defines the laplacian (second partial derivative wrt x) of narr, the cell density array.
+    """
+    u_up = np.roll(narr, shift=1, axis=0)
+    u_down = np.roll(narr, shift=-1, axis=0)
+    u_left = np.roll(narr, shift=1, axis=1)
+    u_right = np.roll(narr, shift=-1, axis=1)
+
+    #5 point stencil
+    lap_u_5 = u_up + u_down + u_left + u_right - 4*narr
+
+    return lap_u_5
+
+#where do i define the actual expression now?
 
 if __name__ == "__main__":
     myx0 = wound(L=L)
