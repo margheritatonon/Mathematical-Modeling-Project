@@ -86,11 +86,18 @@ def before_singlepartial(integrated, n):
     """
     return n * integrated
 
-def partial_wrt_x(expression):
+def partial_wrt_x(expression, dx = 1):
     """
     Computing the partial derivative of the expression n*the integral in the formula.
+    We use central differences to approximate the derivative.
     """
-    pass
+    derivative = np.zeros_like(expression)
+    derivative[1:-1] = (expression[2:] - expression[:-2]) / (2 * dx)
+    derivative[0] = (expression[1] - expression[0]) / dx
+    derivative[-1] = (expression[-1] - expression[-2]) / dx
+
+    return derivative
+
 
 if __name__ == "__main__":
     myx0 = wound(L=L)
