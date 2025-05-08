@@ -74,6 +74,24 @@ def integrating_expression(to_integrate, rho):
     result = integrate.trapezoid(to_integrate, x)
     return result
 
+def f(n):
+    """
+    Defining the f(n) function in the expression.
+    """
+    return n*(1-n)
+
+def before_singlepartial(integrated, n):
+    """
+    Defines the expression before the partial derivative with respect to x is taken.
+    """
+    return n * integrated
+
+def partial_wrt_x(expression):
+    """
+    Computing the partial derivative of the expression n*the integral in the formula.
+    """
+    pass
+
 if __name__ == "__main__":
     myx0 = wound(L=L)
     plot_initialcond = False
