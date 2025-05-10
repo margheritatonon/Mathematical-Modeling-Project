@@ -2,11 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from scipy import integrate
+from scipy.signal import convolve
+from scipy.interpolate import interp1d
+
 
 #defining parameters:
-lambd = 7 
+lambd = 5
 alpha = 1 
-rho = 16.9 #the radius for nonlocal integration
+rho = 17 #the radius for nonlocal integration
 L = 200 #size of domain --> but halved (domain goes from -L to L)
 
 #clarifying notation:
@@ -48,6 +51,21 @@ def h(xhat):
         xhat: the indices of the neighboring values of a certain value x.
     """
     return (0.1*np.arctan(0.2*xhat))/(np.arctan(2))
+
+def precompute_h_kernel(rho, dx=1):
+    """
+    This precomputes xhat and h(xhat) since they do not depend on time.
+    """
+    r = int(rho / dx)
+    xhat_vals = np.arange(-r, r + 1)
+    h_vals = (0.1 * np.arctan(0.2 * xhat_vals)) / np.arctan(2)
+    
+    #trapezoidal rule weights
+    h_vals[0] *= 0.5
+    h_vals[-1] *= 0.5
+    h_vals *= dx
+
+    return xhat_vals, h_vals
 
 def A(narr, currx, rho, dx = 1):
     """
@@ -122,14 +140,46 @@ def laplacians(narr, dx = 1):
     lap[-1] = lap[-2]
     return lap
 
+def compute_integral_convolution(narr, rho, dx=1):
+    """
+    Computes the nonlocal integral using convolution
+    """
+    r = int(rho / dx)
+    xhat_vals = np.arange(-r, r + 1)
+    h_vals = h(xhat_vals)
+    h_vals *= dx
+
+    #trapezoidal rule weights
+    h_vals[0] *= 0.5
+    h_vals[-1] *= 0.5
+
+    #g(n) * h(xhat) convolved over space
+    return convolve(g(narr), h_vals, mode='same')
+
+def compute_nonlocal_integral_noconvolution(narr, xhat_vals, h_vals):
+    """
+    Computes the nonlocal integral without convolution.
+    """
+    g_n = g(narr)
+    r = len(xhat_vals) // 2
+
+    # Pad g(n) with zeros to handle boundary
+    padded = np.pad(g_n, pad_width=r, mode='constant', constant_values=0)
+
+    # Create an output array
+    integrated = np.zeros_like(narr)
+
+    for i in range(len(narr)):
+        window = padded[i:i + 2 * r + 1]
+        integrated[i] = np.sum(window * h_vals)
+
+    return integrated
+
 def rhs(narr, rho, dx = 1):
     """
     Defines the right hand side of the PDE 
     """
-    integrated = np.zeros_like(narr)
-    for i in range(len(narr)):
-        a_vals = A(narr, i, rho, dx = dx)
-        integrated[i] = integrating_expression(a_vals, rho, dx = dx)
+    integrated = compute_integral_convolution(narr, rho, dx=dx)
     
     #advection term
     adv_term = partial_wrt_x(before_singlepartial(integrated, narr), dx=dx)
@@ -153,6 +203,9 @@ def simulate(initial_n_cond, T, dt = 0.1, rho=rho):
 
     for t in range(1, steps):
         sol[t] = sol[t-1] + dt * rhs(sol[t-1], rho=rho) #eulers method
+        if np.any(np.isnan(sol[t])) or np.any(np.isinf(sol[t])):
+            print(f"Numerical instability at time step {t}, time {t*dt}")
+            break
     
     return sol
 
@@ -181,10 +234,11 @@ def plot_snapshots(sol, dt, times, x_vals):
     for ax, idx, t in zip(axs, indices, times):
         ax.plot(x_vals, sol[idx])
         ax.set_title(f"t = {t}")
-        ax.set_ylim(0, 1.6)
+        ax.set_ylim(0, 2)
         ax.set_xlim(x_vals[0], x_vals[-1])
         ax.grid(True)
 
+    plt.suptitle(f"lambda = {lambd}, rho = {rho}")
     plt.tight_layout()
     plt.show()
 
@@ -195,8 +249,8 @@ if __name__ == "__main__":
         plt.plot(np.arange(-200, 201), myx0)
         plt.show()
 
-    sol = simulate(myx0, T=300, dt=0.1, rho=int(rho))
+    sol = simulate(myx0, T=300, dt=0.01, rho=rho)
     #animate_solution(sol)
 
-    plot_times = [2, 10, 70, 299.9]  #avoid edge case
+    plot_times = [0, 2, 10, 70, 299.9]  #avoid edge case
     plot_snapshots(sol, dt=0.1, times=plot_times, x_vals=np.arange(-L, L+1))
