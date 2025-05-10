@@ -12,6 +12,7 @@ alpha = 1
 rho = 8 #the radius for nonlocal integration
 L = 200 #size of domain --> but halved (domain goes from -L to L)
 dx = 0.25
+D=1 #diffusion coefficient
 
 #clarifying notation:
 #when we perform the integral, we are integrating with respect to xhat for one specific value of x.
@@ -140,160 +141,109 @@ def laplacians(narr, dx=dx):
     lap[-1] = lap[-2]
     return lap
 
-def compute_integral_convolution(narr, rho, dx = dx):
+def compute_nonlocal_term(narr, rho, dx=dx):
     """
-    Computes the nonlocal integral using convolution
+    Computes the nonlocal integral term for each point in narr.
+    Returns the array of integrated values for each spatial point.
     """
+    integrated_vals = np.zeros_like(narr)
+    for i in range(len(narr)):
+        integrand = A(narr, i, rho, dx)
+        integrated_vals[i] = integrating_expression(integrand, rho, dx)
+    return integrated_vals
+
+def compute_nonlocal_term_convolution(narr, rho, dx=dx):
     r = int(rho / dx)
     xhat_vals = np.arange(-r, r + 1)
-    h_vals = h(xhat_vals)
-    h_vals *= dx
-
-    #trapezoidal rule weights
-    h_vals[0] *= 0.5
-    h_vals[-1] *= 0.5
-
-    #g(n) * h(xhat) convolved over space
-    return convolve(g(narr), h_vals, mode='same')
-
-def compute_nonlocal_integral_noconvolution(narr, xhat_vals, h_vals):
-    """
-    Computes the nonlocal integral without convolution.
-    """
-    g_n = g(narr)
-    r = len(xhat_vals) // 2
-
-    # Pad g(n) with zeros to handle boundary
-    padded = np.pad(g_n, pad_width=r, mode='constant', constant_values=0)
-
-    # Create an output array
-    integrated = np.zeros_like(narr)
-
-    for i in range(len(narr)):
-        window = padded[i:i + 2 * r + 1]
-        integrated[i] = np.sum(window * h_vals)
-
-    return integrated
-
-def compute_nonlocal_integral_fast(narr, rho, x_vals, dx=dx):
-    xhat_vals = np.arange(-rho, rho + dx, dx)
-    h_vals = h(-xhat_vals)  # flip direction to match convolution kernel
     
-    # Apply trapezoidal weights (dx is built-in to integrate.trapezoid below)
-    h_vals[0] *= 0.5
-    h_vals[-1] *= 0.5
+    kernel = h(xhat_vals)
+    kernel[0] *= 0.5
+    kernel[-1] *= 0.5
+    kernel *= dx
 
-    # Use g(n)
-    g_n = g(narr)
-
-    # Extend domain slightly to avoid extrapolation errors
-    interp_gn = interp1d(x_vals, g_n, bounds_error=False, fill_value=0.0)
-
-    # Build full x + x̂ grid
-    x_matrix = x_vals[:, None] + xhat_vals[None, :]
-    g_matrix = interp_gn(x_matrix)
-
-    # Multiply by h and integrate
-    integrand = g_matrix * h_vals[None, :]
-    result = integrate.trapezoid(integrand, dx=dx, axis=1)
-
-    return result
+    gn = g(narr)
+    # pad with zeros to match boundary behavior
+    pad_width = len(kernel) // 2
+    padded_gn = np.pad(gn, pad_width, mode='constant')
+    conv = np.convolve(padded_gn, kernel, mode='valid')  # result has same length as gn
+    return conv
 
 
-
-def rhs(narr, rho, xvals, dx = dx):
+def timestep(n, alpha, D, rho, dt, dx=dx):
     """
-    Defines the right hand side of the PDE 
+    Performs a single time step update of the PDE, with Explicit Eulers.
     """
-    #integrated = compute_integral_convolution(narr, rho, dx=dx)
-    integrated = compute_nonlocal_integral_fast(narr, rho, xvals, dx=dx)
-    
-    #advection term
-    adv_term = partial_wrt_x(before_singlepartial(integrated, narr), dx=dx)
+    integrated_vals = compute_nonlocal_term_convolution(n, rho, dx)
+    advection = partial_wrt_x(before_singlepartial(integrated_vals, n), dx)
+    reaction = alpha * f(n)
+    diffusion = D * laplacians(n, dx)
+    return n + dt * (diffusion - advection + reaction)
 
-    #diffusion term
-    diff_term = alpha * laplacians(narr, dx=dx)
-
-    #growth term
-    growth_term = f(narr)
-
-    return diff_term - adv_term + growth_term
-
-def simulate(initial_n_cond, T, xvals, dt = 0.1, rho=rho):
+def run_simulation(L, dx, dt, tmax, alpha, rho, D=D):
     """
-    Simulates the PDE for time T.
+    Simulates the main loop of the simulation
     """
-    steps = int(T / dt)
-    nx = len(initial_n_cond)
-    sol = np.zeros((steps, nx))
-    sol[0] = initial_n_cond.copy()
+    x_vals = np.arange(-L, L + dx, dx)
+    n = wound(L, dx)
+    snapshots = [n.copy()]
+    times = [0]
 
-    for t in range(1, steps):
-        sol[t] = sol[t-1] + dt * rhs(sol[t-1], rho, xvals) #eulers method
-        if np.any(np.isnan(sol[t])) or np.any(np.isinf(sol[t])):
-            print(f"Numerical instability at time step {t}, time {t*dt}")
-            break
-    
-    return sol
+    for t in np.arange(dt, tmax + dt, dt):
+        n = timestep(n, alpha, D, rho, dt, dx)
+        if int(t / dt) % 10 == 0:
+            snapshots.append(n.copy())
+            times.append(t)
+    return x_vals, snapshots, times
 
 
-def animate_solution(sol, interval=100):
+def animate_simulation(x_vals, snapshots, times):
+    """
+    Animates the result of the simulation
+    """
     fig, ax = plt.subplots()
-    line, = ax.plot(sol[0])
+    line, = ax.plot(x_vals, snapshots[0])
+    ax.set_ylim(0, 1.5)
 
     def update(frame):
-        line.set_ydata(sol[frame])
+        line.set_ydata(snapshots[frame])
+        ax.set_title(f"Time = {times[frame]:.2f}")
         return line,
 
-    ani = animation.FuncAnimation(fig, update, frames=range(0, len(sol), 10),
-                                  interval=interval, blit=True)
+    ani = animation.FuncAnimation(fig, update, frames=len(snapshots), interval=50)
+    plt.show()
+
+def plot_static_snapshots(x_vals, snapshots, times, time_points):
+    """
+    Plots static snapshots of the solution at desired time points
+    """
+    fig, axes = plt.subplots(2, 2, figsize=(12, 6), sharex=True, sharey=True)
+    axes = axes.flatten()
     
+    for i, target_time in enumerate(time_points):
+        idx = np.argmin(np.abs(np.array(times) - target_time))
+        axes[i].plot(x_vals, snapshots[idx], lw=2)
+        axes[i].set_title(f"t = {times[idx]:.2f}")
+        axes[i].set_xlabel("x")
+        axes[i].set_ylabel("n(x)")
+        axes[i].grid(True)
+    
+    fig.tight_layout()
     plt.show()
 
-
-def plot_snapshots(sol, dt, times, x_vals):
-    """
-    Plots the solution at given times.
-    """
-    indices = [min(int(t / dt), sol.shape[0] - 1) for t in times]
-    fig, axs = plt.subplots(1, len(times), figsize=(4 * len(times), 4))
-
-    for ax, idx, t in zip(axs, indices, times):
-        ax.plot(x_vals, sol[idx])
-        ax.set_title(f"t = {t}")
-        ax.set_ylim(min(sol[idx])-0.1, max(sol[idx])+0.1)
-        ax.set_xlim(x_vals[0], x_vals[-1])
-        ax.grid(True)
-
-    plt.suptitle(f"lambda = {lambd}, rho = {rho}")
-    plt.tight_layout()
-    plt.show()
 
 if __name__ == "__main__":
     dt = 0.01
     x_vals = np.arange(-L, L + dx, dx)
     myx0 = wound(L=L)
-    np.random.seed(42)  # reproducibility
-    myx0 += 1e-3 * np.random.randn(*myx0.shape)
     plot_initialcond = False
     if plot_initialcond == True:
         plt.plot(np.arange(-200, 201), myx0)
         plt.show()
+    
+    tmax = 20
+    x_vals, snapshots, times = run_simulation(L, dx, dt, tmax, lambd, alpha, rho, D)
+    animate_simulation(x_vals, snapshots, times)
+    
+    plot_static_snapshots(x_vals, snapshots, times, time_points=[0, 5, 10, 20])
 
-    sol = simulate(myx0, T=300, xvals = np.arange(-L, L+ dx, dx), dt=dt, rho=rho)
-    #animate_solution(sol)
 
-    plot_times = [0, 1, 2, 10, 70]  #avoid edge case
-    plot_snapshots(sol, dt=dt, times=plot_times, x_vals=x_vals)
-
-
-    deb = False
-    if deb:
-        i_conv = compute_integral_convolution(myx0, rho, dx=dx)
-        i_fast = compute_nonlocal_integral_fast(myx0, rho, x_vals, dx=dx)
-
-        plt.plot(x_vals, i_conv, label='Convolution')
-        plt.plot(x_vals, i_fast, label='Fast')
-        plt.legend()
-        plt.title("Comparison of nonlocal integral methods at t=0")
-        plt.show()
