@@ -98,21 +98,39 @@ def partial_wrt_x(expression, dx = 1):
 
     return derivative
 
-def laplacians(narr):
+def laplacians(narr, dx = 1):
     """
     Defines the laplacian (second partial derivative wrt x) of narr, the cell density array.
+    This is a 1D Laplacian (we therefore use a three point stencil)
     """
-    u_up = np.roll(narr, shift=1, axis=0)
-    u_down = np.roll(narr, shift=-1, axis=0)
-    u_left = np.roll(narr, shift=1, axis=1)
-    u_right = np.roll(narr, shift=-1, axis=1)
+    lap = np.zeros_like(narr)
+    lap[1:-1] = (narr[2:] - 2 * narr[1:-1] + narr[:-2]) / dx**2
+    #neumann boundary conditions (zero flux)
+    lap[0] = lap[1]
+    lap[-1] = lap[-2]
+    return lap
 
-    #5 point stencil
-    lap_u_5 = u_up + u_down + u_left + u_right - 4*narr
+def rhs(narr, rho, dx = 1):
+    """
+    Defines the right hand side of the PDE 
+    """
+    integrated = np.zeros_like(narr)
+    for i in range(len(narr)):
+        a_vals = A(narr, i, rho)
+        integrated[i] = integrating_expression(a_vals, rho)
+    
+    #advection term
+    adv_term = partial_wrt_x(before_singlepartial(integrated, narr), dx=dx)
 
-    return lap_u_5
+    #diffusion term
+    diff_term = alpha * laplacians(narr, dx=dx)
 
-#where do i define the actual expression now?
+    #growth term
+    growth_term = f(narr)
+
+    return diff_term - adv_term + growth_term
+
+
 
 if __name__ == "__main__":
     myx0 = wound(L=L)
