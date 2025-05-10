@@ -5,7 +5,7 @@ from scipy import integrate
 
 #defining parameters:
 lambd = 7 
-alpha = 0.1 
+alpha = 1 
 rho = 16.9 #the radius for nonlocal integration
 L = 200 #size of domain --> but halved (domain goes from -L to L)
 
@@ -49,7 +49,7 @@ def h(xhat):
     """
     return (0.1*np.arctan(0.2*xhat))/(np.arctan(2))
 
-def A(narr, currx, rho):
+def A(narr, currx, rho, dx = 1):
     """
     This is the expression inside of the integral.
     Parameters:
@@ -57,21 +57,33 @@ def A(narr, currx, rho):
         currx: the x index we look at
         rho: the radius we consider
     """
+    r = int(rho / dx)
+    xhat_vals = np.arange(-r, r + 1)
+    indices = currx + xhat_vals
+
+    valid_mask = (indices >= 0) & (indices < len(narr))
+    valid_indices = indices[valid_mask]
+    padded_gn = np.zeros_like(xhat_vals, dtype=float)
+    padded_gn[valid_mask] = g(narr[valid_indices])
+
+    return padded_gn * h(xhat_vals)
+
     #we first take the neighbors of x that are in a radius of rho away
     #we therefore apply a mask
     #the thing is that its one dimensional so we just take the neighbors of x + rho, x-rho
-    indices = np.arange(min(0, currx-rho), min(currx+rho, len(narr))) #prevents errors in indexing, in case currx-rho < 0 or currx+rho > the total array length
+    #indices = np.arange(min(0, currx-rho), min(currx+rho, len(narr))) #prevents errors in indexing, in case currx-rho < 0 or currx+rho > the total array length
     #now we index n with these indices
-    ns = narr[indices]
-    a = g(ns) * h(indices) #this is the expression that is inside of the integral
-    return a  #we will need to integrate a numerically, from -rho to rho.
+    #ns = narr[indices]
+    #a = g(ns) * h(indices) #this is the expression that is inside of the integral
+    #return a  #we will need to integrate a numerically, from -rho to rho.
 
-def integrating_expression(to_integrate, rho):
+def integrating_expression(to_integrate, rho, dx = 1):
     """
     Integrates the to_integrate array using the trapezoidal rule.
     """
-    x = np.linspace(-rho, rho, len(to_integrate)) #the integration bounds
-    result = integrate.trapezoid(to_integrate, x)
+    r = int(rho / dx)
+    xhat_vals = np.arange(-r, r + 1) * dx  #the integration bounds
+    result = integrate.trapezoid(to_integrate, xhat_vals)
     return result
 
 def f(n):
@@ -116,8 +128,8 @@ def rhs(narr, rho, dx = 1):
     """
     integrated = np.zeros_like(narr)
     for i in range(len(narr)):
-        a_vals = A(narr, i, rho)
-        integrated[i] = integrating_expression(a_vals, rho)
+        a_vals = A(narr, i, rho, dx = dx)
+        integrated[i] = integrating_expression(a_vals, rho, dx = dx)
     
     #advection term
     adv_term = partial_wrt_x(before_singlepartial(integrated, narr), dx=dx)
@@ -130,7 +142,51 @@ def rhs(narr, rho, dx = 1):
 
     return diff_term - adv_term + growth_term
 
+def simulate(initial_n_cond, T, dt = 0.1, rho=rho):
+    """
+    Simulates the PDE for time T.
+    """
+    steps = int(T / dt)
+    nx = len(initial_n_cond)
+    sol = np.zeros((steps, nx))
+    sol[0] = initial_n_cond.copy()
 
+    for t in range(1, steps):
+        sol[t] = sol[t-1] + dt * rhs(sol[t-1], rho=rho) #eulers method
+    
+    return sol
+
+
+def animate_solution(sol, interval=100):
+    fig, ax = plt.subplots()
+    line, = ax.plot(sol[0])
+
+    def update(frame):
+        line.set_ydata(sol[frame])
+        return line,
+
+    ani = animation.FuncAnimation(fig, update, frames=range(0, len(sol), 10),
+                                  interval=interval, blit=True)
+    
+    plt.show()
+
+
+def plot_snapshots(sol, dt, times, x_vals):
+    """
+    Plots the solution at given times.
+    """
+    indices = [min(int(t / dt), sol.shape[0] - 1) for t in times]
+    fig, axs = plt.subplots(1, len(times), figsize=(4 * len(times), 4))
+
+    for ax, idx, t in zip(axs, indices, times):
+        ax.plot(x_vals, sol[idx])
+        ax.set_title(f"t = {t}")
+        ax.set_ylim(0, 1.6)
+        ax.set_xlim(x_vals[0], x_vals[-1])
+        ax.grid(True)
+
+    plt.tight_layout()
+    plt.show()
 
 if __name__ == "__main__":
     myx0 = wound(L=L)
@@ -138,3 +194,9 @@ if __name__ == "__main__":
     if plot_initialcond == True:
         plt.plot(np.arange(-200, 201), myx0)
         plt.show()
+
+    sol = simulate(myx0, T=300, dt=0.1, rho=int(rho))
+    #animate_solution(sol)
+
+    plot_times = [2, 10, 70, 299.9]  #avoid edge case
+    plot_snapshots(sol, dt=0.1, times=plot_times, x_vals=np.arange(-L, L+1))
