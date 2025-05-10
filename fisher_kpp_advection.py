@@ -4,6 +4,8 @@ import matplotlib.animation as animation
 from scipy import integrate
 from scipy.signal import convolve
 from scipy.interpolate import interp1d
+from scipy.linalg import solve_banded
+
 
 
 #defining parameters:
@@ -67,42 +69,7 @@ def precompute_h_kernel(rho, dx=dx):
 
     return xhat_vals, h_vals
 
-def A(narr, currx, rho, dx = dx):
-    """
-    This is the expression inside of the integral.
-    Parameters:
-        narr: the array of current n values
-        currx: the x index we look at
-        rho: the radius we consider
-    """
-    r = int(rho / dx)
-    xhat_vals = np.arange(-r, r + 1)
-    indices = currx + xhat_vals
 
-    valid_mask = (indices >= 0) & (indices < len(narr))
-    valid_indices = indices[valid_mask]
-    padded_gn = np.zeros_like(xhat_vals, dtype=float)
-    padded_gn[valid_mask] = g(narr[valid_indices])
-
-    return padded_gn * h(xhat_vals)
-
-    #we first take the neighbors of x that are in a radius of rho away
-    #we therefore apply a mask
-    #the thing is that its one dimensional so we just take the neighbors of x + rho, x-rho
-    #indices = np.arange(min(0, currx-rho), min(currx+rho, len(narr))) #prevents errors in indexing, in case currx-rho < 0 or currx+rho > the total array length
-    #now we index n with these indices
-    #ns = narr[indices]
-    #a = g(ns) * h(indices) #this is the expression that is inside of the integral
-    #return a  #we will need to integrate a numerically, from -rho to rho.
-
-def integrating_expression(to_integrate, rho, dx = dx):
-    """
-    Integrates the to_integrate array using the trapezoidal rule.
-    """
-    r = int(rho / dx)
-    xhat_vals = np.arange(-r, r + 1) * dx  #the integration bounds
-    result = integrate.trapezoid(to_integrate, xhat_vals)
-    return result
 
 def f(n):
     """
@@ -221,7 +188,7 @@ def rhs(narr, rho, xvals, dx = dx):
 
 def simulate(initial_n_cond, T, xvals, dt = 0.1, rho=rho):
     """
-    Simulates the PDE for time T.
+    Simulates the PDE for time T, using Explicit Euler's Method.
     """
     steps = int(T / dt)
     nx = len(initial_n_cond)
@@ -234,6 +201,44 @@ def simulate(initial_n_cond, T, xvals, dt = 0.1, rho=rho):
             print(f"Numerical instability at time step {t}, time {t*dt}")
             break
     
+    return sol
+
+def simulate_imex(initial_n, T, xvals, dt, dx, rho):
+    steps = int(T / dt)
+    nx = len(initial_n)
+    sol = np.zeros((steps, nx))
+    sol[0] = initial_n.copy()
+
+    # Precompute diffusion matrix (implicit part)
+    alpha_dt_dx2 = alpha * dt / dx**2
+    lower = np.full(nx-1, -alpha_dt_dx2)
+    diag  = np.full(nx, 1 + 2 * alpha_dt_dx2)
+    upper = np.full(nx-1, -alpha_dt_dx2)
+
+    # Neumann BC
+    diag[0] = diag[-1] = 1 + alpha_dt_dx2
+    upper[0] = lower[-1] = -alpha_dt_dx2
+
+    ab = np.zeros((3, nx))
+    ab[0,1:] = upper
+    ab[1,:] = diag
+    ab[2,:-1] = lower
+
+    for t in range(1, steps):
+        n_prev = sol[t-1]
+        # compute nonlocal advection and growth terms
+        integral = compute_nonlocal_integral_fast(n_prev, rho, xvals, dx=dx)
+        adv = partial_wrt_x(n_prev * integral, dx=dx)
+        growth = f(n_prev)
+
+        rhs_vec = n_prev + dt * ( -adv + growth )
+
+        sol[t] = solve_banded((1, 1), ab, rhs_vec)
+
+        if np.any(np.isnan(sol[t])) or np.any(np.isinf(sol[t])):
+            print(f"Numerical instability at t = {t*dt}")
+            break
+
     return sol
 
 
@@ -273,15 +278,17 @@ if __name__ == "__main__":
     dt = 0.01
     x_vals = np.arange(-L, L + dx, dx)
     myx0 = wound(L=L)
-    np.random.seed(42)  # reproducibility
+    np.random.seed(42)
     myx0 += 1e-3 * np.random.randn(*myx0.shape)
     plot_initialcond = False
     if plot_initialcond == True:
         plt.plot(np.arange(-200, 201), myx0)
         plt.show()
 
-    sol = simulate(myx0, T=300, xvals = np.arange(-L, L+ dx, dx), dt=dt, rho=rho)
-    #animate_solution(sol)
+    sol1 = simulate(myx0, T=300, xvals = np.arange(-L, L+ dx, dx), dt=dt, rho=rho)
+    sol = simulate_imex(myx0, T=300, xvals=x_vals, dt=0.1, dx=dx, rho=rho)
+
+    animate_solution(sol)
 
     plot_times = [0, 1, 2, 10, 70]  #avoid edge case
     plot_snapshots(sol, dt=dt, times=plot_times, x_vals=x_vals)
