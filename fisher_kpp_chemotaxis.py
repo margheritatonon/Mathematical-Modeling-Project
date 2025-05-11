@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from fisher_kpp import D, r, N
+import math
+import matplotlib.gridspec as gridspec
+
 
 alpha = 0.1 #chemotaxis parameter
 k = 0.1 #degradation rate of the chemotactic signal
@@ -159,10 +162,54 @@ def animate_chemical(carr_updates, N):
     plt.title(f"2D Fisher-KPP Model with Chemotaxis: Chemical Concntration Animation", fontsize=19)
     plt.show()
 
+def plot_static_snapshots_density(uarr_updates, N, times, dt):
+    """
+    Plots static snapshots at specified times of the uarr_updates array.
+    """
+    iterations = [int(t / dt) for t in times]
+    frame_indices = [i // 50 for i in iterations]
+
+    num_snapshots = len(times)
+    ncols = 3
+    nrows = math.ceil(num_snapshots / ncols)
+
+    # Create figure with gridspec to make room for left-side colorbar
+    fig = plt.figure(figsize=(3.5 * ncols, 3 * nrows))
+    gs = gridspec.GridSpec(nrows, ncols + 1, width_ratios=[0.1] + [1]*ncols, wspace=0.3)
+
+    axes = []
+    for i in range(num_snapshots):
+        row = i // ncols
+        col = i % ncols + 1  # Shift by 1 because column 0 is for colorbar
+        ax = fig.add_subplot(gs[row, col])
+        axes.append(ax)
+
+    for ax, idx, t in zip(axes, frame_indices, times):
+        im = ax.imshow(
+            uarr_updates[idx],
+            cmap='viridis',
+            origin='lower',
+            extent=[0, N, 0, N],
+            vmin=0,
+            vmax=1
+        )
+        ax.set_title(f"t = {t}", fontsize=12)
+        ax.axis('off')
+
+    cax = fig.add_subplot(gs[:, 0])
+    fig.colorbar(im, cax=cax)
+    #cax.set_ylabel('Concentration', rotation=270, labelpad=15)
+
+    fig.suptitle(f"Fisher-KPP with Chemotaxis at\nr = {r}, D = {D}, α = {alpha}, k = {k}", fontsize=25)
+    plt.subplots_adjust(top=0.8, bottom=0.08)
+    plt.tight_layout()
+    plt.show()
 
 if __name__ == "__main__":
     nc = create_chemotaxis_array(N, shape = "oval")
     nt, ct = chemotaxis_eqs(nc)
     narr_updates, carr_updates = numerical_integration_explicit_eulers(nc)
-    animate_celldensity(narr_updates, N)
-    animate_chemical(carr_updates, N)
+    #animate_celldensity(narr_updates, N)
+    #animate_chemical(carr_updates, N)
+    plot_static_snapshots_density(narr_updates, N, [1, 10, 50, 100, 150, 200], dt = 0.01)
+
