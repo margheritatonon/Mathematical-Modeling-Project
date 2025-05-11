@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import math
 
 D = 0.05 #according to the paper, D can range anywhere from 10e-8 to 0.15
 r = 0.1 #according to the paper, r can range anywhere from 10e-6 to 0.5
@@ -135,7 +136,53 @@ def animate_plot(single_integrated_array, N):
     ani = animation.FuncAnimation(
     	fig, update, interval=50, blit=True, frames = len(single_integrated_array), repeat = False
 	)
-    plt.title(f"2D Fisher-KPP Model", fontsize=19)
+    plt.title(f"2D Fisher-KPP Model: r = {r}, D = {D}", fontsize=19)
+    plt.show()
+
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import math
+
+def plot_static_snapshots(uarr_updates, N, times, dt):
+    """
+    Plots static snapshots at specified times of the uarr_updates array.
+    """
+    iterations = [int(t / dt) for t in times]
+    frame_indices = [i // 50 for i in iterations]
+
+    num_snapshots = len(times)
+    ncols = 3
+    nrows = math.ceil(num_snapshots / ncols)
+
+    # Create figure with gridspec to make room for left-side colorbar
+    fig = plt.figure(figsize=(3.5 * ncols, 3 * nrows))
+    gs = gridspec.GridSpec(nrows, ncols + 1, width_ratios=[0.1] + [1]*ncols, wspace=0.3)
+
+    axes = []
+    for i in range(num_snapshots):
+        row = i // ncols
+        col = i % ncols + 1  # Shift by 1 because column 0 is for colorbar
+        ax = fig.add_subplot(gs[row, col])
+        axes.append(ax)
+
+    for ax, idx, t in zip(axes, frame_indices, times):
+        im = ax.imshow(
+            uarr_updates[idx],
+            cmap='viridis',
+            origin='lower',
+            extent=[0, N, 0, N],
+            vmin=0,
+            vmax=1
+        )
+        ax.set_title(f"t = {t}", fontsize=12)
+        ax.axis('off')
+
+    cax = fig.add_subplot(gs[:, 0])
+    fig.colorbar(im, cax=cax)
+    #cax.set_ylabel('Concentration', rotation=270, labelpad=15)
+
+    fig.suptitle(f"Snapshots of 2D Fisher-KPP at r = {r}, D = {D}", fontsize=25)
+    plt.tight_layout()
     plt.show()
 
 
@@ -150,5 +197,7 @@ if __name__ == "__main__":
 
     uarr_updates, varr_updates = numerical_integration_explicit_eulers(uv)
 
-    animate_plot(uarr_updates, N)
+    #animate_plot(uarr_updates, N)
+
+    plot_static_snapshots(uarr_updates, N, dt=0.01, times = [1, 10, 50, 100, 150, 200])
     
