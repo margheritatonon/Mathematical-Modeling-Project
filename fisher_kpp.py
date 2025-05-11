@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import math
+import matplotlib.gridspec as gridspec
 
 D = 0.05 #according to the paper, D can range anywhere from 10e-8 to 0.15
 r = 0.1 #according to the paper, r can range anywhere from 10e-6 to 0.5
@@ -139,9 +140,6 @@ def animate_plot(single_integrated_array, N):
     plt.title(f"2D Fisher-KPP Model: r = {r}, D = {D}", fontsize=19)
     plt.show()
 
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import math
 
 def plot_static_snapshots(uarr_updates, N, times, dt):
     """
