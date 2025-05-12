@@ -17,40 +17,39 @@ def create_chemotaxis_array(N:int, shape:str = "circle"):
         shape: the shape of the initial condition (e.g., "circle", "rectangle", "oval", "elongated rectangle")
     """
 
-    #ones, as we are assuming the monolayer is at confluence at t=0
-    nc = np.ones((2, N, N)) #2D array
-    #c is going to remain 1 everywhere at the start of the simulation.
+    nc = np.zeros((2, N, N))
+    nc[0] = 1  # cell density everywhere
+    nc[1] = 0  # chemical concentration everywhere
 
-    #we can simulate different initial cell patterns here (different shapes of the zone of 0s)
-    #circle:
+    center = N // 2
+    Y, X = np.ogrid[:N, :N]
+
     if shape == "circle":
-        center = N // 2
         radius = N // 5
-        Y, X = np.ogrid[:N, :N]
         distance = np.sqrt((X - center)**2 + (Y - center)**2)
         mask = distance <= radius
-        #s
-        nc[0][mask] = 0
-        #nc[1] = 1 - nc[0]
-        return nc
 
-    #rectangle:
-    if shape == "rectangle":
-        nc[0][N//4:N//2, N//4:N//2] = 0
-        #nc[1] = 1 - nc[0]
-        return nc
+    elif shape == "rectangle":
+        mask = np.zeros((N, N), dtype=bool)
+        mask[N//4:N//2, N//4:N//2] = True
 
-    #oval:
-    if shape == "oval":
-        center = N // 2
+    elif shape == "oval":
         height = N // 4 
         width = N // 6       
-        Y, X = np.ogrid[:N, :N]
         mask = ((X - center)**2) / (width**2) + ((Y - center)**2) / (height**2) <= 1
 
-        nc[0][mask] = 0
-        #nc[1] = 1 - nc[0]
-        return nc
+    elif shape == "elongated rectangle":
+        mask = np.zeros((N, N), dtype=bool)
+        mask[N//3:2*N//3, N//4:3*N//4] = True
+
+    else:
+        raise ValueError(f"Shape '{shape}' not recognized.")
+
+    # Apply wound: remove cells, add chemical
+    nc[0][mask] = 0  # cells removed in wound
+    nc[1][mask] = 1  # chemical only in wound
+
+    return nc
 
 def chemotaxis_eqs(nc):
     """
@@ -200,7 +199,50 @@ def plot_static_snapshots_density(uarr_updates, N, times, dt):
     fig.colorbar(im, cax=cax)
     #cax.set_ylabel('Concentration', rotation=270, labelpad=15)
 
-    fig.suptitle(f"Fisher-KPP with Chemotaxis at α = {alpha}, k = {k}", fontsize=25)
+    fig.suptitle(f"Cell Density at α = {alpha}, k = {k}", fontsize=25)
+    plt.subplots_adjust(top=0.85, bottom=0.08)
+    plt.tight_layout()
+    plt.show()
+
+def plot_static_snapshots_chemical(carr_updates, N, times, dt):
+    """
+    Plots static snapshots at specified times of the carr_updates array.
+    """
+    iterations = [int(t / dt) for t in times]
+    frame_indices = [i // 50 for i in iterations]
+
+    num_snapshots = len(times)
+    ncols = 3
+    nrows = math.ceil(num_snapshots / ncols)
+
+    # Create figure with gridspec to make room for left-side colorbar
+    fig = plt.figure(figsize=(3.5 * ncols, 3 * nrows))
+    gs = gridspec.GridSpec(nrows, ncols + 1, width_ratios=[0.1] + [1]*ncols, wspace=0.3)
+
+    axes = []
+    for i in range(num_snapshots):
+        row = i // ncols
+        col = i % ncols + 1  # Shift by 1 because column 0 is for colorbar
+        ax = fig.add_subplot(gs[row, col])
+        axes.append(ax)
+
+    for ax, idx, t in zip(axes, frame_indices, times):
+        im = ax.imshow(
+            carr_updates[idx],
+            cmap='viridis',
+            origin='lower',
+            extent=[0, N, 0, N],
+            vmin=0,
+            vmax=1
+        )
+        ax.set_title(f"t = {t}", fontsize=12)
+        ax.axis('off')
+
+    cax = fig.add_subplot(gs[:, 0])
+    fig.colorbar(im, cax=cax)
+    #cax.set_ylabel('Concentration', rotation=270, labelpad=15)
+
+    fig.suptitle(f"Chemical Concentration at α = {alpha}, k = {k}", fontsize=25)
     plt.subplots_adjust(top=0.85, bottom=0.08)
     plt.tight_layout()
     plt.show()
@@ -212,4 +254,5 @@ if __name__ == "__main__":
     #animate_celldensity(narr_updates, N)
     #animate_chemical(carr_updates, N)
     plot_static_snapshots_density(narr_updates, N, [1, 10, 50, 100, 150, 200], dt = 0.01)
+    plot_static_snapshots_chemical(carr_updates, N, [0, 10, 50, 100, 150, 200], dt = 0.01)
 
