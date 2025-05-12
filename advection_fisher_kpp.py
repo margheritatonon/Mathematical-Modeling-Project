@@ -57,17 +57,36 @@ def laplacians(narr, dx=dx):
 #for every x in the array, we need to compute this integral as it is a nonlocal integral that looks at different values of x.
     #we need to adjust the rho value accordingly (rho assumes dx = 1) --> radius = int(rho / dx)
 
-def integral_term(narr, dx=dx, dt=dt, rho = rho):
+def integral_term(narr, dx=dx, rho = rho):
     """
     Computes the expression inside of the integral term.
     """
     radius = int(rho/dx) #we access the radius like this as we need to take into account the value of dx as well.
+
+    #we now can compute the "kernel" h. h depends only on xhat, which is just an offset which depends on rho. it does NOT depend on x+- rho.
+    #we therefore compute h outside of the for loop.
+    #this is the RIGHT part of the integral.
+    j = np.arange(-radius, radius + 1)
+    xhat = j*dx #this converts to physical distances.
+    h_kernel = 0.1 * np.arctan(0.2 * xhat) / np.arctan(2.0)
+
     #for every x in the array, we need to compute this.
     #begin with a for loop implementation
+    integrand_values = [] #this should be a 2L/dx length array.
     for i in range(len(narr)):
-        x_hat = narr[max(i - radius, 0) : min(i + radius + 1, len(narr)-1)] #we account for the boundaries with the min and max terms. not sure if it is len(narr) or len(narr)-1
-        #x_hat is now INDICES of the narr array that we need to access (the values of x we would be integrating over)
+        #LEFT part of the integral
+        n_neighbors = narr[max(i - radius, 0) : min(i + radius + 1, len(narr))] #we account for the boundaries with the min and max terms.
+        #n_neighbors is all of the neighbors that are rho away from the current x that we look at.
+        g_function = n_neighbors * (lambd - n_neighbors) #this is one part of the 
+
+        #putting together the integral:
+        integrand = g_function * h_kernel 
+        integrand_values.append(integrand)
+    
+    return np.array(integrand_values)
         
+
+
         
 
 
