@@ -13,10 +13,10 @@ dt = 0.01 #time step
     # n represents the cell density, t is the time, and x is the spatial position. We are in 1 dimension so x is just one dimensional (not a vector).
 
 #in the code:
-    #xhat is INDICES of the range [x-rho, x+rho]. You have a different xhat array depending on which value of x you look at, as the array needs to be computed for every x in the discretization.
     #narr is the array of cell densities. the values inside must range from 0 to 1.
         #the length of the narr array depends on dx. 
             #if dx = 1, the length is 2L. if dx = 0.5, the length is 2*2L. if dx = 0.25, the length is 4*2L, etc.
+    #integrated_values is the result of the integral_beforen function. also a 2L/dx length array.
 
 
 #INITIAL CONDITION
@@ -57,9 +57,10 @@ def laplacians(narr, dx=dx):
 #for every x in the array, we need to compute this integral as it is a nonlocal integral that looks at different values of x.
     #we need to adjust the rho value accordingly (rho assumes dx = 1) --> radius = int(rho / dx)
 
-def integral_term(narr, dx=dx, rho = rho):
+def integral_beforen(narr, dx=dx, rho = rho):
     """
-    Computes the expression inside of the integral term.
+    Computes the actual integral of the equation.
+    Should return a 2L/dx length 1D array.
     """
     radius = int(rho/dx) #we access the radius like this as we need to take into account the value of dx as well.
 
@@ -72,7 +73,7 @@ def integral_term(narr, dx=dx, rho = rho):
 
     #for every x in the array, we need to compute this.
     #begin with a for loop implementation
-    integrand_values = [] #this should be a 2L/dx length array.
+    integrated_values = np.zeros_like(narr) #this should be a 2L/dx length array.
     for i in range(len(narr)):
         #LEFT part of the integral
         n_neighbors = narr[max(i - radius, 0) : min(i + radius + 1, len(narr))] #we account for the boundaries with the min and max terms.
@@ -81,12 +82,42 @@ def integral_term(narr, dx=dx, rho = rho):
 
         #putting together the integral:
         integrand = g_function * h_kernel 
-        integrand_values.append(integrand)
+        integrated_values[i] = np.trapz(integrand, dx=dx)
     
-    return np.array(integrand_values)
+    return integrated_values
+
+#now, we multiply by n.
+def by_n(narr, integrated_values):
+    """
+    Defines the expression that is used before the partial derivative wrt x is taken.
+    """
+    return narr * integrated_values
+
+#now, we need to compute the partial derivative of this expression with respect to x.
+def partial_wrt_x(expr, dx=dx):
+    """
+    Computes the partial derivative with respect to x
+    """
+    pass
         
+#now, we define a function that combines all of these three components together.
+def pde(diffusion_term, advection_term, reaction_term, alpha=alpha):
+    """
+    Defines the PDE.
+    Parameters:
+        diffusion_term is a 2L/dx array that is computed with the laplacian function.
+        advection_term is the result of the by_n function (integral expression multiplied by n). also 2L/dx
+        reaction_term is the result of the f function. also 2L/dx
+        alpha is the diffusion coefficient.
+    Returns a 2L/dx array.
+    """
+    expression = alpha * diffusion_term -  advection_term + reaction_term
+    return expression
 
 
-        
-
-
+#now we simulate the process:
+def simulation(narr, dx=dx, dt=dt):
+    """
+    Uses the explicit euler's scheme to simulate the PDE evolution.
+    """
+    pass
