@@ -4,8 +4,8 @@ import matplotlib.animation as animation
 import math
 import matplotlib.gridspec as gridspec
 
-D = 0.05 #according to the paper, D can range anywhere from 10e-8 to 0.15
-r = 0.1 #according to the paper, r can range anywhere from 10e-6 to 0.5
+D = 0.05 #according to the paper, D can range anywhere from 10e-8 to 0.15 --> 0.05
+r = 0.1 #according to the paper, r can range anywhere from 10e-6 to 0.5 --> 0.1
 N  = 100 
 
 def create_array(N:int, shape:str = "circle"):
