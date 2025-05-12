@@ -54,3 +54,20 @@ def laplacians(narr, dx=dx):
 
 
 #INTEGRAL!!
+#for every x in the array, we need to compute this integral as it is a nonlocal integral that looks at different values of x.
+    #we need to adjust the rho value accordingly (rho assumes dx = 1) --> radius = int(rho / dx)
+
+def integral_term(narr, dx=dx, dt=dt, rho = rho):
+    """
+    Computes the expression inside of the integral term.
+    """
+    radius = int(rho/dx) #we access the radius like this as we need to take into account the value of dx as well.
+    #for every x in the array, we need to compute this.
+    #begin with a for loop implementation
+    for i in range(len(narr)):
+        x_hat = narr[max(i - radius, 0) : min(i + radius + 1, len(narr)-1)] #we account for the boundaries with the min and max terms. not sure if it is len(narr) or len(narr)-1
+        #x_hat is now INDICES of the narr array that we need to access (the values of x we would be integrating over)
+        
+        
+
+
