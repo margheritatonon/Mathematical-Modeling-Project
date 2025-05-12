@@ -11,7 +11,7 @@ lambd = 7
 alpha = 1 
 rho = 8 #the radius for nonlocal integration
 L = 200 #size of domain --> but halved (domain goes from -L to L)
-dx = 0.25
+dx = 0.025
 
 #clarifying notation:
 #when we perform the integral, we are integrating with respect to xhat for one specific value of x.
@@ -207,15 +207,30 @@ def rhs(narr, rho, xvals, dx = dx):
     """
     #integrated = compute_integral_convolution(narr, rho, dx=dx)
     integrated = compute_nonlocal_integral_fast(narr, rho, xvals, dx=dx)
+    if np.any(np.isnan(integrated)):
+        raise ValueError("nan value in integrated")
+    
+    if np.any(np.isnan(narr)):
+        raise ValueError("nan value in narr")
     
     #advection term
-    adv_term = partial_wrt_x(before_singlepartial(integrated, narr), dx=dx)
+    before = before_singlepartial(integrated, narr)
+    if np.any(np.isnan(before)):
+        raise ValueError("nan value in before")
+    adv_term = partial_wrt_x(before, dx=dx)
+    #adv_term = np.nan_to_num(adv_term, 0)
+    if np.any(np.isnan(adv_term)):
+        raise ValueError("nan value in adv_term")
 
     #diffusion term
     diff_term = alpha * laplacians(narr, dx=dx)
+    if np.any(np.isnan(diff_term)):
+        raise ValueError("nan value in diff_term")
 
     #growth term
     growth_term = f(narr)
+    if np.any(np.isnan(growth_term)):
+        raise ValueError("nan value in growth_term")
 
     return diff_term - adv_term + growth_term
 
@@ -230,8 +245,11 @@ def simulate(initial_n_cond, T, xvals, dt = 0.1, rho=rho):
 
     for t in range(1, steps):
         sol[t] = sol[t-1] + dt * rhs(sol[t-1], rho, xvals) #eulers method
-        if np.any(np.isnan(sol[t])) or np.any(np.isinf(sol[t])):
-            print(f"Numerical instability at time step {t}, time {t*dt}")
+        if np.any(np.isnan(sol[t])):
+            print(f"Numerical instability at time step {t}, time {t*dt}, Nan")
+            break
+        if np.any(np.isinf(sol[t])):
+            print(f"Numerical instability at time step {t}, time {t*dt}, inf")
             break
     
     return sol
@@ -270,7 +288,7 @@ def plot_snapshots(sol, dt, times, x_vals):
     plt.show()
 
 if __name__ == "__main__":
-    dt = 0.01
+    dt = 0.001
     x_vals = np.arange(-L, L + dx, dx)
     myx0 = wound(L=L)
     np.random.seed(42)  # reproducibility
