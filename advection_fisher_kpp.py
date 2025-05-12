@@ -100,7 +100,10 @@ def partial_wrt_x(expr, dx=dx):
     expr is the output of by_n. it is a 2L/dx length array, representing the expression that we need to take a partial derivative of.
     This function should also return a 2L/dx array.
     """
-    pass
+    #we use a finite difference approximation for the first derivative.
+    left = np.roll(expr, 1)
+    right = np.roll(expr, -1)
+    return (right - left) / (2 * dx) #is of length 2L/dx
         
 #now, we define a function that combines all of these three components together.
 def pde(diffusion_term, advection_term, reaction_term, alpha=alpha):
