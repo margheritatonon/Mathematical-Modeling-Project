@@ -121,9 +121,39 @@ def pde(diffusion_term, advection_term, reaction_term, alpha=alpha):
 
 
 #now we simulate the process:
-def simulation(narr, dx=dx, dt=dt):
+def simulation(initial_n_condition, T, dx=dx, dt=dt):
     """
     Uses the explicit euler's scheme to simulate the PDE evolution.
     Ideally, it returns a list of n at different time points t (will then be used for plotting and animations).
+    Parameters:
+        initial_n_condition : the initial condition array, length 2L/dx.
+        T is the time we wish to integrate over.
+        xvals is
+        dt: the time step
+        dx: the spatial step
+    Returns an array (2D) of cell density n at different values of T.
     """
-    pass
+    steps = int(T/dt)
+    length = len(initial_n_condition)
+    sol = np.zeros((steps, length)) #initializing where step solutions will be stored
+    sol[0] = initial_n_condition.copy() #ensuring the first element is the initial condition
+
+    #EULERS METHOD:
+    for t in range(1, steps):
+        current_narr = sol[t-1] #this is the array of cell densities of the (previous) step
+
+        #we need to update the diffusion, reaction, and advection terms at every time step.
+        diff_term = laplacians(current_narr)
+        reac_term = f(current_narr)
+
+        #advection term is more complicated:
+        integratedvals = integral_beforen(current_narr)
+        expr = by_n(current_narr, integratedvals)
+        adv_term = partial_wrt_x(expr)
+
+        #update step
+        sol[t] = current_narr + dt * pde(diff_term, adv_term, reac_term)
+
+    return sol #this is now a 2D array, where we have "steps" rows and columns of size 2L/dx
+
+
