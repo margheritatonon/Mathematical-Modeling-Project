@@ -201,7 +201,7 @@ def plot_static_snapshots_density(uarr_updates, N, times, dt):
     #cax.set_ylabel('Concentration', rotation=270, labelpad=15)
 
     fig.suptitle(f"Fisher-KPP with Chemotaxis at α = {alpha}, k = {k}", fontsize=25)
-    plt.subplots_adjust(top=0.8, bottom=0.08)
+    plt.subplots_adjust(top=0.85, bottom=0.08)
     plt.tight_layout()
     plt.show()
 
