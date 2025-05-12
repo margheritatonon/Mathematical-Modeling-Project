@@ -5,7 +5,7 @@ lambd = 7 #g parameter
 alpha = 1 #parameter for diffusion
 rho = 8 #the radius for nonlocal integration
 L = 200 #size of domain --> but halved (because domain goes from -L to L)
-dx = 0.25 #spatial integration/derivative step
+dx = 0.5 #spatial integration/derivative step
 dt = 0.01 #time step
 
 #VARIABLE DESCRIPTION:
@@ -14,7 +14,9 @@ dt = 0.01 #time step
 
 #in the code:
     #xhat is INDICES of the range [x-rho, x+rho]. You have a different xhat array depending on which value of x you look at, as the array needs to be computed for every x in the discretization.
-    #narr is the array of cell densities. it has length 2L. the values inside must range from 0 to 1.
+    #narr is the array of cell densities. the values inside must range from 0 to 1.
+        #the length of the narr array depends on dx. 
+            #if dx = 1, the length is 2L. if dx = 0.5, the length is 2*2L. if dx = 0.25, the length is 4*2L, etc.
 
 
 #INITIAL CONDITION
@@ -42,15 +44,13 @@ def f(narr:np.array):
 def laplacians(narr, dx=dx):
     """
     Defines the laplacian (second partial derivative wrt x) of narr, the cell density array.
-    This is a 1D Laplacian (we therefore use a three point stencil).
+    This is a 1D Laplacian. We use a finite difference approximation.
     The output is also an array of length 2L.
     """
-    lap = np.zeros_like(narr)
-    lap[1:-1] = (narr[2:] - 2 * narr[1:-1] + narr[:-2]) / dx**2
-    #neumann boundary conditions (zero flux)
-    lap[0] = lap[1]
-    lap[-1] = lap[-2]
-    return lap
+    left = np.roll(narr, 1) #this is 1 and -1, but each index moves dx units in the spatial domain because of how the narr array is constructed. therefore we are shifting by dx
+    right = np.roll(narr, -1)
+    lap_u = (left - 2*narr + right) / (dx**2) #finite difference formula.
+    return lap_u
 
 
 #INTEGRAL!!
