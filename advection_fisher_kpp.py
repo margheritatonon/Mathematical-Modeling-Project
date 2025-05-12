@@ -96,7 +96,9 @@ def by_n(narr, integrated_values):
 #now, we need to compute the partial derivative of this expression with respect to x.
 def partial_wrt_x(expr, dx=dx):
     """
-    Computes the partial derivative with respect to x
+    Computes the partial derivative with respect to x.
+    expr is the output of by_n. it is a 2L/dx length array, representing the expression that we need to take a partial derivative of.
+    This function should also return a 2L/dx array.
     """
     pass
         
@@ -119,5 +121,6 @@ def pde(diffusion_term, advection_term, reaction_term, alpha=alpha):
 def simulation(narr, dx=dx, dt=dt):
     """
     Uses the explicit euler's scheme to simulate the PDE evolution.
+    Ideally, it returns a list of n at different time points t (will then be used for plotting and animations).
     """
     pass
