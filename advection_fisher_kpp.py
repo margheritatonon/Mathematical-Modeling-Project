@@ -76,12 +76,17 @@ def integral_beforen(narr, dx=dx, rho = rho):
     integrated_values = np.zeros_like(narr) #this should be a 2L/dx length array.
     for i in range(len(narr)):
         #LEFT part of the integral
-        n_neighbors = narr[max(i - radius, 0) : min(i + radius + 1, len(narr))] #we account for the boundaries with the min and max terms.
+        start = max(i - radius, 0)
+        end = min(i + radius + 1, len(narr))
+        n_neighbors = narr[start:end] #we account for the boundaries with the min and max terms.
         #n_neighbors is all of the neighbors that are rho away from the current x that we look at.
         g_function = n_neighbors * (lambd - n_neighbors) #this is one part of the integrand
 
         #putting together the integral:
-        integrand = g_function * h_kernel 
+        kernel_start = radius - (i - start) #we need to compute which part of the kernel to use so that it matches length of g_function
+        kernel_end = kernel_start + (end - start)
+        h_slice = h_kernel[kernel_start:kernel_end]
+        integrand = g_function * h_slice 
         integrated_values[i] = np.trapz(integrand, dx=dx)
     
     return integrated_values
@@ -157,3 +162,10 @@ def simulation(initial_n_condition, T, dx=dx, dt=dt):
     return sol #this is now a 2D array, where we have "steps" rows and columns of size 2L/dx
 
 
+
+
+if __name__ == "__main__":
+    initial_n_condition = wound(L=L, dx=dx)
+    simulation_arr = simulation(initial_n_condition, T=10, dx=dx, dt=dt)
+    print(simulation_arr) 
+    print(simulation_arr.shape)
