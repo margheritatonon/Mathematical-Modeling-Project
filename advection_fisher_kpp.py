@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 #defining the parameters
-lambd = 6 #g parameter
+lambd = 7 #g parameter
 alpha = 1 #parameter for diffusion
-rho = 11 #the radius for nonlocal integration
+rho = 8 #the radius for nonlocal integration
 L = 200 #size of domain --> but halved (because domain goes from -L to L)
 dx = 0.5 #spatial integration/derivative step
 dt = 0.01 #time step
@@ -81,16 +81,9 @@ def integral_beforen(narr, dx=dx, rho = rho):
 
     for i in range(len(narr)):
         #LEFT part of the integral
-        start = max(i - radius, 0)
-        end = min(i + radius + 1, len(narr))
-        g_neighbors = g_function_full[start:end] #this is one part of the integrand
-
-        #putting together the integral:
-        kernel_start = radius - (i - start) #we need to compute which part of the kernel to use so that it matches length of g_function
-        kernel_end = kernel_start + (end - start)
-        h_slice = h_kernel[kernel_start:kernel_end]
-
-        integrand = g_neighbors * h_slice 
+        indices = (i + j) % len(narr) #periodic boundary condition
+        g_neighbors = g_function_full[indices]
+        integrand = g_neighbors * h_kernel
         integrated_values[i] = np.trapz(integrand, dx=dx)
     
     return integrated_values
