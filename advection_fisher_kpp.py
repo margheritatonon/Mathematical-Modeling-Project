@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from scipy.signal import convolve
 
 #defining the parameters
 lambd = 7 #g parameter
@@ -64,34 +65,14 @@ def integral_beforen(narr, dx=dx, rho = rho):
     Computes the actual integral of the equation.
     Should return a 2L/dx length 1D array.
     """
-    radius = int(rho/dx) #we access the radius like this as we need to take into account the value of dx as well.
-
-    #we now can compute the "kernel" h. h depends only on xhat, which is just an offset which depends on rho. it does NOT depend on x+- rho.
-    #we therefore compute h outside of the for loop.
-    #this is the RIGHT part of the integral.
+    radius = int(rho/dx)
     j = np.arange(-radius, radius + 1)
-    xhat = j*dx #this converts to physical distances.
-    h_kernel = 0.1 * np.arctan(0.2 * xhat) / np.arctan(2.0)
-
-    #for every x in the array, we need to compute this.
-    #begin with a for loop implementation
-    integrated_values = np.zeros_like(narr) #this should be a 2L/dx length array.
-    for i in range(len(narr)):
-        #LEFT part of the integral
-        start = max(i - radius, 0)
-        end = min(i + radius + 1, len(narr))
-        n_neighbors = narr[start:end] #we account for the boundaries with the min and max terms.
-        #n_neighbors is all of the neighbors that are rho away from the current x that we look at.
-        g_function = n_neighbors * (lambd - n_neighbors) #this is one part of the integrand
-
-        #putting together the integral:
-        kernel_start = radius - (i - start) #we need to compute which part of the kernel to use so that it matches length of g_function
-        kernel_end = kernel_start + (end - start)
-        h_slice = h_kernel[kernel_start:kernel_end]
-        integrand = g_function * h_slice 
-        integrated_values[i] = np.trapz(integrand, dx=dx)
-    
+    xhat = j * dx
+    h_kernel = 0.1 * np.arctan(0.2 * xhat) / np.arctan(2.0) #computing the h kernel before as it is just displacement, it does not depend on the value of x, just the value of rho
+    g_function = narr * (lambd - narr)
+    integrated_values = convolve(g_function, h_kernel, mode='same') * dx
     return integrated_values
+
 
 #now, we multiply by n.
 def by_n(narr, integrated_values):
