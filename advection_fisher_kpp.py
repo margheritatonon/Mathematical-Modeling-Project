@@ -1,3 +1,4 @@
+#this is what used to be main with no periodic boundary conditions (explosions at the edges)
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
