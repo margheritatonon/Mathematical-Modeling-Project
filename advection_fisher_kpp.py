@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 #defining the parameters
-lambd = 7 #g parameter
+lambd = 6 #g parameter
 alpha = 1 #parameter for diffusion
-rho = 8 #the radius for nonlocal integration
+rho = 11 #the radius for nonlocal integration
 L = 200 #size of domain --> but halved (because domain goes from -L to L)
 dx = 0.5 #spatial integration/derivative step
 dt = 0.01 #time step
@@ -76,19 +76,21 @@ def integral_beforen(narr, dx=dx, rho = rho):
     #for every x in the array, we need to compute this.
     #begin with a for loop implementation
     integrated_values = np.zeros_like(narr) #this should be a 2L/dx length array.
+
+    g_function_full = narr * (lambd - narr) #this is the entire g function, which we later need to slice
+
     for i in range(len(narr)):
         #LEFT part of the integral
         start = max(i - radius, 0)
         end = min(i + radius + 1, len(narr))
-        n_neighbors = narr[start:end] #we account for the boundaries with the min and max terms.
-        #n_neighbors is all of the neighbors that are rho away from the current x that we look at.
-        g_function = n_neighbors * (lambd - n_neighbors) #this is one part of the integrand
+        g_neighbors = g_function_full[start:end] #this is one part of the integrand
 
         #putting together the integral:
         kernel_start = radius - (i - start) #we need to compute which part of the kernel to use so that it matches length of g_function
         kernel_end = kernel_start + (end - start)
         h_slice = h_kernel[kernel_start:kernel_end]
-        integrand = g_function * h_slice 
+
+        integrand = g_neighbors * h_slice 
         integrated_values[i] = np.trapz(integrand, dx=dx)
     
     return integrated_values
@@ -198,8 +200,8 @@ def plot_snapshots(sol, dt, times, L=L, dx=dx):
 
 if __name__ == "__main__":
     initial_n_condition = wound(L=L, dx=dx)
-    simulation_arr = simulation(initial_n_condition, T=10, dx=dx, dt=dt)
+    simulation_arr = simulation(initial_n_condition, T=100, dx=dx, dt=dt)
     #print(simulation_arr) 
     #print(simulation_arr.shape)
     animate_solution(simulation_arr)
-    plot_snapshots(simulation_arr, dt=dt, times=(0,5,10,19))
+    plot_snapshots(simulation_arr, dt=dt, times=(0,10,20, 50, 70, 100))
