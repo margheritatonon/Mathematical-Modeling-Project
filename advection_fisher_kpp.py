@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 #defining the parameters
 lambd = 7 #g parameter
@@ -161,11 +163,43 @@ def simulation(initial_n_condition, T, dx=dx, dt=dt):
 
     return sol #this is now a 2D array, where we have "steps" rows and columns of size 2L/dx
 
+def animate_solution(sol, interval=100):
+    fig, ax = plt.subplots()
+    line, = ax.plot(sol[0])
+    ax.set_ylim((-1,2))
 
+    def update(frame):
+        line.set_ydata(sol[frame])
+        return line,
 
+    ani = animation.FuncAnimation(fig, update, frames=range(0, len(sol), 10),
+                                  interval=interval, blit=True)
+    
+    plt.show()
+
+def plot_snapshots(sol, dt, times, L=L, dx=dx):
+    """
+    Plots the solution at given times.
+    """
+    x_vals = np.arange(-L, L+ dx, dx)
+    indices = [min(int(t / dt), sol.shape[0] - 1) for t in times]
+    fig, axs = plt.subplots(1, len(times), figsize=(4 * len(times), 4))
+
+    for ax, idx, t in zip(axs, indices, times):
+        ax.plot(x_vals, sol[idx])
+        ax.set_title(f"t = {t}")
+        ax.set_ylim(min(sol[idx])-0.1, max(sol[idx])+0.1)
+        ax.set_xlim(x_vals[0], x_vals[-1])
+        ax.grid(True)
+
+    plt.suptitle(f"lambda = {lambd}, rho = {rho}")
+    plt.tight_layout()
+    plt.show()
 
 if __name__ == "__main__":
     initial_n_condition = wound(L=L, dx=dx)
     simulation_arr = simulation(initial_n_condition, T=10, dx=dx, dt=dt)
-    print(simulation_arr) 
-    print(simulation_arr.shape)
+    #print(simulation_arr) 
+    #print(simulation_arr.shape)
+    animate_solution(simulation_arr)
+    plot_snapshots(simulation_arr, dt=dt, times=(0,5,10,19))
