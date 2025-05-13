@@ -78,7 +78,7 @@ def integral_beforen(narr, dx=dx, rho = rho):
         #LEFT part of the integral
         n_neighbors = narr[max(i - radius, 0) : min(i + radius + 1, len(narr))] #we account for the boundaries with the min and max terms.
         #n_neighbors is all of the neighbors that are rho away from the current x that we look at.
-        g_function = n_neighbors * (lambd - n_neighbors) #this is one part of the 
+        g_function = n_neighbors * (lambd - n_neighbors) #this is one part of the integrand
 
         #putting together the integral:
         integrand = g_function * h_kernel 
