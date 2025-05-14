@@ -3,9 +3,10 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import math
 import matplotlib.gridspec as gridspec
+import os #to check if animation already exists
 
-D = 0.05 #according to the paper, D can range anywhere from 10e-8 to 0.15 --> 0.05
-r = 0.1 #according to the paper, r can range anywhere from 10e-6 to 0.5 --> 0.1
+D = 0.05 #according to the paper, D can range anywhere from 10^-8 to 0.15 --> 0.05
+r = 0.15 #according to the paper, r can range anywhere from 10^-6 to 0.5 --> 0.1
 N  = 100 
 
 def create_array(N:int, shape:str = "circle"):
@@ -56,7 +57,7 @@ def create_array(N:int, shape:str = "circle"):
         uv[1][mask] = 0
         return uv
 
-def fisher_kpp(uv):
+def fisher_kpp(uv, r=r, D=D):
     """
     Sets up the Fisher-KPP model for array uv, returning the PDEs du/dt and dv/dt.
     """
@@ -116,7 +117,7 @@ def numerical_integration_explicit_eulers(uv:np.array, dt:float=0.01, num_iters:
     
     return uarr_updates, varr_updates
 
-def animate_plot(single_integrated_array, N):
+def animate_plot(single_integrated_array, N, save_path = None):
     """
     Animates the plot of the numerically integrated solution.
     Single_integrated_array is the array of u or v values, after numerical integration.
@@ -138,10 +139,18 @@ def animate_plot(single_integrated_array, N):
     
 
     ani = animation.FuncAnimation(
-    	fig, update, interval=50, blit=True, frames = len(single_integrated_array), repeat = False
+    	fig, update, interval=10, blit=True, frames = len(single_integrated_array), repeat = False
 	)
-    plt.title(f"2D Fisher-KPP Model: r = {r}, D = {D}", fontsize=19)
-    plt.show()
+    plt.title(f"$r = {r}, D = {D}$", fontsize=19)
+
+    if save_path:
+        if os.path.exists(save_path):
+            raise FileExistsError(f"File '{save_path}' already exists. Unable to save animation. Change path name or delete old file.")
+        ani.save(save_path, writer="ffmpeg", fps=20)
+        print(f"Animation saved to {save_path}")
+        plt.show()
+    else:
+        plt.show()
 
 
 def plot_static_snapshots(uarr_updates, N, times, dt):
@@ -198,7 +207,9 @@ if __name__ == "__main__":
 
     uarr_updates, varr_updates = numerical_integration_explicit_eulers(uv)
 
-    animate_plot(uarr_updates, N)
+    save_path = f"animations/fkpp_animation_r10e5_D005.gif"
+    #animate_plot(uarr_updates, N, save_path=save_path)
+    #animate_plot(uarr_updates, N)
 
     plot_static_snapshots(uarr_updates, N, dt=0.01, times = [1, 10, 50, 100, 150, 200])
     
