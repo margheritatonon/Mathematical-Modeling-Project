@@ -139,9 +139,9 @@ def animate_plot(single_integrated_array, N, save_path = None):
     
 
     ani = animation.FuncAnimation(
-    	fig, update, interval=50, blit=True, frames = len(single_integrated_array), repeat = False
+    	fig, update, interval=20, blit=True, frames = len(single_integrated_array), repeat = False
 	)
-    plt.title(f"2D Fisher-KPP Model: r = {r}, D = {D}", fontsize=19)
+    plt.title(f"r = {r}, D = {D}", fontsize=19)
 
     if save_path:
         if os.path.exists(save_path):
@@ -207,8 +207,9 @@ if __name__ == "__main__":
 
     uarr_updates, varr_updates = numerical_integration_explicit_eulers(uv)
 
-    save_path = f"fkpp_animation_r01_D005.gif"
-    animate_plot(uarr_updates, N, save_path=save_path)
+    save_path = f"animations/fkpp_animation_r01_D005.gif"
+    #animate_plot(uarr_updates, N, save_path=save_path)
+    animate_plot(uarr_updates, N)
 
     plot_static_snapshots(uarr_updates, N, dt=0.01, times = [1, 10, 50, 100, 150, 200])
     
