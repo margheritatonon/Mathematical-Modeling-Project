@@ -2,3 +2,11 @@
 __pycache__
 fisher_kpp_advection_trial.py
 .DS_Store
+math_modeling_report.aux
+math_modeling_report.fdb_latexmk
+math_modeling_report.fls
+math_modeling_report.log
+math_modeling_report.out
+math_modeling_report.pdf
+math_modeling_report.synctex.gz
+math_modeling_report.tex

@@ -100,12 +100,15 @@ def numerical_integration_explicit_eulers(uv:np.array, dt:float=0.01, num_iters:
         uv[1] = uv[1] + vt * dt #updating v
 
         #Boundary conditions:
-        #dirichlet on vertical sides, there are always cells surrounding the wound: u = 1
-        uv[0][:, 0] = 1
-        uv[0][:, -1] = 1
-        #neumann on horizontal sides, cell flux along the horizontal sides is none: u = u (this is especially important for when the wound vertically extends and "touches" the top and bottom of the grid)
-        uv[0][0, :] = uv[0][1, :]
-        uv[0][-1, :] = uv[0][-2, :]
+        #Neumann on everything
+        uv[0][0, :] = uv[0][1, :]       
+        uv[0][-1, :] = uv[0][-2, :]    
+        uv[0][:, 0] = uv[0][:, 1]   
+        uv[0][:, -1] = uv[0][:, -2] 
+        uv[1][0, :] = uv[1][1, :]       
+        uv[1][-1, :] = uv[1][-2, :] 
+        uv[1][:, 0] = uv[1][:, 1] 
+        uv[1][:, -1] = uv[1][:, -2]
 
         if i % 50 == 0: #appending every 50 iterations
             uarr_updates.append(np.copy(uv[0]))
