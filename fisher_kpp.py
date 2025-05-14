@@ -5,8 +5,8 @@ import math
 import matplotlib.gridspec as gridspec
 import os #to check if animation already exists
 
-D = 0.05 #according to the paper, D can range anywhere from 10e-8 to 0.15 --> 0.05
-r = 0.1 #according to the paper, r can range anywhere from 10e-6 to 0.5 --> 0.1
+D = 0.05 #according to the paper, D can range anywhere from 10^-8 to 0.15 --> 0.05
+r = 0.1 #according to the paper, r can range anywhere from 10^-6 to 0.5 --> 0.1
 N  = 100 
 
 def create_array(N:int, shape:str = "circle"):
@@ -139,9 +139,9 @@ def animate_plot(single_integrated_array, N, save_path = None):
     
 
     ani = animation.FuncAnimation(
-    	fig, update, interval=20, blit=True, frames = len(single_integrated_array), repeat = False
+    	fig, update, interval=10, blit=True, frames = len(single_integrated_array), repeat = False
 	)
-    plt.title(f"r = {r}, D = {D}", fontsize=19)
+    plt.title(f"$r = {r}, D = {D}$", fontsize=19)
 
     if save_path:
         if os.path.exists(save_path):
@@ -207,9 +207,9 @@ if __name__ == "__main__":
 
     uarr_updates, varr_updates = numerical_integration_explicit_eulers(uv)
 
-    save_path = f"animations/fkpp_animation_r01_D005.gif"
+    save_path = f"animations/fkpp_animation_r10e5_D005.gif"
     #animate_plot(uarr_updates, N, save_path=save_path)
-    animate_plot(uarr_updates, N)
+    #animate_plot(uarr_updates, N)
 
     plot_static_snapshots(uarr_updates, N, dt=0.01, times = [1, 10, 50, 100, 150, 200])
     
