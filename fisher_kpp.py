@@ -5,8 +5,8 @@ import math
 import matplotlib.gridspec as gridspec
 import os #to check if animation already exists
 
-D = 0.15 #according to the paper, D can range anywhere from 10^-8 to 0.15 --> 0.05
-r = 0.1 #according to the paper, r can range anywhere from 10^-6 to 0.5 --> 0.1
+D = 0.05 #according to the paper, D can range anywhere from 10^-8 to 0.15 --> 0.05
+r = 0.15 #according to the paper, r can range anywhere from 10^-6 to 0.5 --> 0.1
 N  = 100 
 
 def create_array(N:int, shape:str = "circle"):
@@ -184,7 +184,7 @@ def plot_static_snapshots(uarr_updates, N, times, dt):
             vmin=0,
             vmax=1
         )
-        ax.set_title(f"t = {t}", fontsize=12)
+        ax.set_title(f"r = {r}, D = {D}", fontsize=12)
         ax.axis('off')
 
     cax = fig.add_subplot(gs[:, 0])
