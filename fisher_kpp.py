@@ -198,7 +198,7 @@ if __name__ == "__main__":
 
     uarr_updates, varr_updates = numerical_integration_explicit_eulers(uv)
 
-    #animate_plot(uarr_updates, N)
+    animate_plot(uarr_updates, N)
 
     plot_static_snapshots(uarr_updates, N, dt=0.01, times = [1, 10, 50, 100, 150, 200])
     
