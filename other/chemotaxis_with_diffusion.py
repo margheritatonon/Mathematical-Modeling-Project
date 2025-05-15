@@ -6,7 +6,7 @@ import matplotlib.gridspec as gridspec
 
 
 alpha = 0.1 #chemotaxis parameter
-k = 0.1 #degradation rate of the chemotactic signal
+k = 0.01 #degradation rate of the chemotactic signal
 D = 0.15 
 r = 0.1 
 N  = 100 
