@@ -1,3 +1,5 @@
+#NOTE: THESE CHEMOTAXIS TERMS ARE A SIMPLIFICATION!
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -255,4 +257,3 @@ if __name__ == "__main__":
     animate_chemical(carr_updates, N)
     plot_static_snapshots_density(narr_updates, N, [1, 10, 50, 100, 150, 200], dt = 0.01)
     plot_static_snapshots_chemical(carr_updates, N, [0, 10, 50, 100, 150, 200], dt = 0.01)
-
