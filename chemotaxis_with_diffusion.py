@@ -5,12 +5,12 @@ import math
 import matplotlib.gridspec as gridspec
 
 
-alpha = 0.1 #chemotaxis parameter
+alpha = 0.2 #chemotaxis parameter
 k = 0.01 #degradation rate of the chemotactic signal
-D = 0.15 
+D = 0.2 
 r = 0.1 
 N  = 100 
-D2 = 0.13
+D2 = 0.15
 
 def create_chemotaxis_array(N:int, shape:str = "circle"):
     """
