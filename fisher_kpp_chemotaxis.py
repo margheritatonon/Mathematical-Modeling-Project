@@ -1,13 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from fisher_kpp import D, r, N
+from fisher_kpp import  N
 import math
 import matplotlib.gridspec as gridspec
 
-
+D = 0.05
+r = 0.1
 alpha = 0.1 #chemotaxis parameter
-k = 0.05 #degradation rate of the chemotactic signal
+k = 0.15 #degradation rate of the chemotactic signal
 dx = 1
 
 def create_chemotaxis_array(N:int, shape:str = "circle"):
@@ -207,7 +208,7 @@ def plot_static_snapshots_density(uarr_updates, N, times, dt):
     fig.colorbar(im, cax=cax)
     #cax.set_ylabel('Concentration', rotation=270, labelpad=15)
 
-    fig.suptitle(f"Cell Density at α = {alpha}, k = {k}", fontsize=25)
+    fig.suptitle(f"Cell Density at α = {alpha}, κ = {k}", fontsize=25)
     plt.subplots_adjust(top=0.85, bottom=0.08)
     plt.tight_layout()
     plt.show()
@@ -250,7 +251,7 @@ def plot_static_snapshots_chemical(carr_updates, N, times, dt):
     fig.colorbar(im, cax=cax)
     #cax.set_ylabel('Concentration', rotation=270, labelpad=15)
 
-    fig.suptitle(f"Chemical Concentration at α = {alpha}, k = {k}", fontsize=25)
+    fig.suptitle(f"Chemical Concentration at α = {alpha}, κ = {k}", fontsize=25)
     plt.subplots_adjust(top=0.85, bottom=0.08)
     plt.tight_layout()
     plt.show()
@@ -260,7 +261,7 @@ if __name__ == "__main__":
     nt, ct = chemotaxis_eqs(nc)
     narr_updates, carr_updates = numerical_integration_explicit_eulers(nc)
     animate_celldensity(narr_updates, N)
-    animate_chemical(carr_updates, N)
+    #animate_chemical(carr_updates, N)
     plot_static_snapshots_density(narr_updates, N, [1, 10, 50, 100, 150, 200], dt = 0.01)
     plot_static_snapshots_chemical(carr_updates, N, [0, 10, 50, 100, 150, 200], dt = 0.01)
 
