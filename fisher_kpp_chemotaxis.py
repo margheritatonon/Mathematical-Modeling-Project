@@ -8,6 +8,7 @@ import matplotlib.gridspec as gridspec
 
 alpha = 0.1 #chemotaxis parameter
 k = 0.05 #degradation rate of the chemotactic signal
+dx = 1
 
 def create_chemotaxis_array(N:int, shape:str = "circle"):
     """
@@ -51,7 +52,7 @@ def create_chemotaxis_array(N:int, shape:str = "circle"):
 
     return nc
 
-def chemotaxis_eqs(nc):
+def chemotaxis_eqs(nc, dx = dx):
     """
     Sets up the Fisher-KPP model with chemotaxis for array nc, returning the PDEs dn/dt and dc/dt.
     """
@@ -74,8 +75,15 @@ def chemotaxis_eqs(nc):
     lap_n_5 = n_up + n_down + n_left + n_right - 4*n
     lap_c_5 = c_up + c_down + c_left + c_right - 4*c
 
+    #computing the chemotaxis part of the equation
+    c_safe = np.clip(c, 1e-3, None)
+    grad_c_y, grad_c_x = np.gradient(c, dx)
+    grad_nc_y, grad_nc_x = np.gradient(n / c_safe, dx)
+    grad_term = grad_nc_y * grad_c_y + grad_nc_x * grad_c_x #dot product of terms
+    chemotaxis_term = grad_term + (n / c_safe) * lap_c_5
+
     #equations:
-    dndt = D * lap_n_5 - alpha * (n / np.clip(c, 1e-3, None)) * lap_c_5 + r * n * (1-n) #need to do + 1e-10 to avoid division by 0 errors that blow up the simulation
+    dndt = dndt = D * lap_n_5 - alpha * chemotaxis_term + r * n * (1 - n) #need to do + 1e-10 to avoid division by 0 errors that blow up the simulation
     dcdt = -k * n
 
     return (dndt, dcdt)
