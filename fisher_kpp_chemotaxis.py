@@ -76,14 +76,14 @@ def chemotaxis_eqs(nc, dx = dx):
     lap_c_5 = c_up + c_down + c_left + c_right - 4*c
 
     #computing the chemotaxis part of the equation
-    c_safe = np.clip(c, 1e-3, None)
-    grad_c_y, grad_c_x = np.gradient(c, dx)
-    grad_nc_y, grad_nc_x = np.gradient(n / c_safe, dx)
+    c_safe = np.clip(c, 1e-3, None) #we need to make sure we don't divide by 0 in the n/c term, we want to avoid instability
+    grad_c_y, grad_c_x = np.gradient(c, dx) #spatial gradients of c
+    grad_nc_y, grad_nc_x = np.gradient(n / c_safe, dx) #spatial gradients of n/c
     grad_term = grad_nc_y * grad_c_y + grad_nc_x * grad_c_x #dot product of terms
     chemotaxis_term = grad_term + (n / c_safe) * lap_c_5
 
     #equations:
-    dndt = dndt = D * lap_n_5 - alpha * chemotaxis_term + r * n * (1 - n) #need to do + 1e-10 to avoid division by 0 errors that blow up the simulation
+    dndt = dndt = D * lap_n_5 - alpha * chemotaxis_term + r * n * (1 - n) 
     dcdt = -k * n
 
     return (dndt, dcdt)
