@@ -172,7 +172,7 @@ def plot_static_snapshots_density(uarr_updates, N, times, dt):
     frame_indices = [i // 50 for i in iterations]
 
     num_snapshots = len(times)
-    ncols = 3
+    ncols = 4
     nrows = math.ceil(num_snapshots / ncols)
 
     # Create figure with gridspec to make room for left-side colorbar
@@ -202,8 +202,8 @@ def plot_static_snapshots_density(uarr_updates, N, times, dt):
     fig.colorbar(im, cax=cax)
     #cax.set_ylabel('Concentration', rotation=270, labelpad=15)
 
-    fig.suptitle(f"Cell Density at α = {alpha}, k = {k}", fontsize=25)
-    plt.subplots_adjust(top=0.85, bottom=0.08)
+    fig.suptitle(f"Cell Density\nD = {D}, Dc = {D2}, α = {alpha}, r = {r}, κ = {k}", fontsize=25)
+    plt.subplots_adjust(top=0.8, bottom=0.08)
     plt.tight_layout()
     plt.show()
 
@@ -215,7 +215,7 @@ def plot_static_snapshots_chemical(carr_updates, N, times, dt):
     frame_indices = [i // 50 for i in iterations]
 
     num_snapshots = len(times)
-    ncols = 3
+    ncols = 4
     nrows = math.ceil(num_snapshots / ncols)
 
     # Create figure with gridspec to make room for left-side colorbar
@@ -245,8 +245,8 @@ def plot_static_snapshots_chemical(carr_updates, N, times, dt):
     fig.colorbar(im, cax=cax)
     #cax.set_ylabel('Concentration', rotation=270, labelpad=15)
 
-    fig.suptitle(f"Chemical Concentration at α = {alpha}, k = {k}", fontsize=25)
-    plt.subplots_adjust(top=0.85, bottom=0.08)
+    fig.suptitle(f"Chemical Concentration\nD = {D}, Dc = {D2}, α = {alpha}, r = {r}, κ = {k}", fontsize=25)
+    plt.subplots_adjust(top=0.8, bottom=0.08)
     plt.tight_layout()
     plt.show()
 
@@ -256,6 +256,6 @@ if __name__ == "__main__":
     narr_updates, carr_updates = numerical_integration_explicit_eulers(nc)
     animate_celldensity(narr_updates, N)
     animate_chemical(carr_updates, N)
-    plot_static_snapshots_density(narr_updates, N, [1, 10, 50, 100, 150, 200], dt = 0.01)
-    plot_static_snapshots_chemical(carr_updates, N, [0, 10, 50, 100, 150, 200], dt = 0.01)
+    plot_static_snapshots_density(narr_updates, N, [0, 50, 100, 150, 200, 250, 300, 350], dt = 0.01)
+    plot_static_snapshots_chemical(carr_updates, N, [0, 50, 100, 150, 200, 250, 300, 350], dt = 0.01)
 
