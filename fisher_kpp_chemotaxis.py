@@ -9,7 +9,7 @@ import os
 D = 0.05
 r = 0.1
 alpha = 0.1 #chemotaxis parameter
-k = 0.05 #degradation rate of the chemotactic signal
+k = 0.15 #degradation rate of the chemotactic signal
 dx = 1
 
 def create_chemotaxis_array(N:int, shape:str = "circle"):
@@ -119,7 +119,7 @@ def numerical_integration_explicit_eulers(nc, dt = 0.01, num_iters = 50000):
     
     return narr_updates, carr_updates
 
-def animate_celldensity(narr_updates, N, save_path = None, showing = True):
+def animate_celldensity(narr_updates, N, save_path = None):
     """
     Creates an animation of the cell density over time.
     """
@@ -153,10 +153,8 @@ def animate_celldensity(narr_updates, N, save_path = None, showing = True):
     else:
         plt.show()
 
-    if showing:
-        plt.show()
 
-def animate_chemical(carr_updates, N, save_path = None, showing = True):
+def animate_chemical(carr_updates, N, save_path = None):
     """
     Creates an animation of the chemical concentration over time.
     """
@@ -189,9 +187,7 @@ def animate_chemical(carr_updates, N, save_path = None, showing = True):
         plt.show()
     else:
         plt.show()
-    
-    if showing:
-        plt.show()
+
 
 def plot_static_snapshots_density(uarr_updates, N, times, dt):
     """
@@ -280,14 +276,14 @@ def plot_static_snapshots_chemical(carr_updates, N, times, dt):
     plt.show()
 
 if __name__ == "__main__":
-    nc = create_chemotaxis_array(N, shape = "rectangle")
+    nc = create_chemotaxis_array(N, shape = "oval")
     nt, ct = chemotaxis_eqs(nc)
     narr_updates, carr_updates = numerical_integration_explicit_eulers(nc)
 
-    save_path_density = "animations/chemotaxis_density_rectangular_a01_k005.gif"
-    save_path_chemical = "animations/chemotaxis_chemical_a01_k005.gif"
-    animate_celldensity(narr_updates, N, save_path=save_path_density, showing=True)
-    #animate_chemical(carr_updates, N, save_path=save_path_chemical, showing = False)
+    save_path_density = "animations/chemotaxis_density_a01_k015.gif"
+    save_path_chemical = "animations/chemotaxis_chemical_a01_k015.gif"
+    animate_celldensity(narr_updates, N, save_path=save_path_density)
+    animate_chemical(carr_updates, N, save_path=save_path_chemical)
 
     #plot_static_snapshots_density(narr_updates, N, [1, 10, 50, 100, 150, 200], dt = 0.01)
     #plot_static_snapshots_chemical(carr_updates, N, [0, 10, 50, 100, 150, 200], dt = 0.01)
