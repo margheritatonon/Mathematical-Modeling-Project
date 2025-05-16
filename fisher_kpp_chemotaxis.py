@@ -4,11 +4,12 @@ import matplotlib.animation as animation
 from fisher_kpp import  N
 import math
 import matplotlib.gridspec as gridspec
+import os
 
 D = 0.05
 r = 0.1
 alpha = 0.1 #chemotaxis parameter
-k = 0.15 #degradation rate of the chemotactic signal
+k = 0.05 #degradation rate of the chemotactic signal
 dx = 1
 
 def create_chemotaxis_array(N:int, shape:str = "circle"):
@@ -118,7 +119,7 @@ def numerical_integration_explicit_eulers(nc, dt = 0.01, num_iters = 50000):
     
     return narr_updates, carr_updates
 
-def animate_celldensity(narr_updates, N):
+def animate_celldensity(narr_updates, N, save_path = None):
     """
     Creates an animation of the cell density over time.
     """
@@ -141,10 +142,20 @@ def animate_celldensity(narr_updates, N):
     ani = animation.FuncAnimation(
     	fig, update, interval=50, blit=True, frames = len(narr_updates), repeat = False
 	)
-    plt.title(f"2D Fisher-KPP Model with Chemotaxis: Cell Density Animation", fontsize=19)
+    plt.title(f"Cell Density at α = {alpha}, κ = {k}", fontsize=19)
+
+    if save_path:
+        if os.path.exists(save_path):
+            raise FileExistsError(f"File '{save_path}' already exists. Unable to save animation. Change path name or delete old file.")
+        ani.save(save_path, writer="ffmpeg", fps=20)
+        print(f"Animation saved to {save_path}")
+        plt.show()
+    else:
+        plt.show()
+
     plt.show()
 
-def animate_chemical(carr_updates, N):
+def animate_chemical(carr_updates, N, save_path = None):
     """
     Creates an animation of the chemical concentration over time.
     """
@@ -167,7 +178,17 @@ def animate_chemical(carr_updates, N):
     ani = animation.FuncAnimation(
     	fig, update, interval=50, blit=True, frames = len(carr_updates), repeat = False
 	)
-    plt.title(f"2D Fisher-KPP Model with Chemotaxis: Chemical Concntration Animation", fontsize=19)
+    plt.title(f"Chemical Concentration at α = {alpha}, κ = {k}", fontsize=19)
+
+    if save_path:
+        if os.path.exists(save_path):
+            raise FileExistsError(f"File '{save_path}' already exists. Unable to save animation. Change path name or delete old file.")
+        ani.save(save_path, writer="ffmpeg", fps=20)
+        print(f"Animation saved to {save_path}")
+        plt.show()
+    else:
+        plt.show()
+    
     plt.show()
 
 def plot_static_snapshots_density(uarr_updates, N, times, dt):
@@ -260,8 +281,12 @@ if __name__ == "__main__":
     nc = create_chemotaxis_array(N, shape = "oval")
     nt, ct = chemotaxis_eqs(nc)
     narr_updates, carr_updates = numerical_integration_explicit_eulers(nc)
-    animate_celldensity(narr_updates, N)
-    #animate_chemical(carr_updates, N)
-    plot_static_snapshots_density(narr_updates, N, [1, 10, 50, 100, 150, 200], dt = 0.01)
-    plot_static_snapshots_chemical(carr_updates, N, [0, 10, 50, 100, 150, 200], dt = 0.01)
+
+    save_path_density = "animations/chemotaxis_density_a01_k005.gif"
+    save_path_chemical = "animations/chemotaxis_chemical_a01_k005.gif"
+    animate_celldensity(narr_updates, N, save_path=save_path_density)
+    animate_chemical(carr_updates, N, save_path=save_path_chemical)
+
+    #plot_static_snapshots_density(narr_updates, N, [1, 10, 50, 100, 150, 200], dt = 0.01)
+    #plot_static_snapshots_chemical(carr_updates, N, [0, 10, 50, 100, 150, 200], dt = 0.01)
 
