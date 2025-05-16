@@ -174,22 +174,28 @@ def animate_solution(sol, interval=100):
 
 def plot_snapshots(sol, dt, times, L=L, dx=dx):
     """
-    Plots the solution at given times.
+    Plots the solution at given times in a 2x3 grid of subplots.
     """
-    x_vals = np.arange(-L, L+ dx, dx)
+    x_vals = np.arange(-L, L + dx, dx)
     indices = [min(int(t / dt), sol.shape[0] - 1) for t in times]
-    fig, axs = plt.subplots(1, len(times), figsize=(4 * len(times), 4))
+
+    fig, axs = plt.subplots(2, 3, figsize=(12, 7))
+    axs = axs.flatten()
 
     for ax, idx, t in zip(axs, indices, times):
         ax.plot(x_vals, sol[idx])
-        ax.set_title(f"t = {t}")
-        ax.set_ylim(min(sol[idx])-0.1, max(sol[idx])+0.1)
+        ax.set_title(f"t = {t}", fontsize = 15)
+        ax.set_ylim(min(sol[idx]) - 0.1, max(sol[idx]) + 0.1)
         ax.set_xlim(x_vals[0], x_vals[-1])
         ax.grid(True)
 
-    plt.suptitle(f"lambda = {lambd}, rho = {rho}")
-    plt.tight_layout()
+    for i in range(len(times), len(axs)):
+        fig.delaxes(axs[i])
+
+    plt.suptitle(f"λ = {lambd}, ρ = {rho}", fontsize = 30)
+    plt.tight_layout(rect=[0, 0.03, 1, 1]) 
     plt.show()
+
 
 if __name__ == "__main__":
     initial_n_condition = wound(L=L, dx=dx)
