@@ -119,7 +119,7 @@ def numerical_integration_explicit_eulers(nc, dt = 0.01, num_iters = 50000):
     
     return narr_updates, carr_updates
 
-def animate_celldensity(narr_updates, N, save_path = None):
+def animate_celldensity(narr_updates, N, save_path = None, showing = True):
     """
     Creates an animation of the cell density over time.
     """
@@ -153,9 +153,10 @@ def animate_celldensity(narr_updates, N, save_path = None):
     else:
         plt.show()
 
-    plt.show()
+    if showing:
+        plt.show()
 
-def animate_chemical(carr_updates, N, save_path = None):
+def animate_chemical(carr_updates, N, save_path = None, showing = True):
     """
     Creates an animation of the chemical concentration over time.
     """
@@ -189,7 +190,8 @@ def animate_chemical(carr_updates, N, save_path = None):
     else:
         plt.show()
     
-    plt.show()
+    if showing:
+        plt.show()
 
 def plot_static_snapshots_density(uarr_updates, N, times, dt):
     """
@@ -278,14 +280,14 @@ def plot_static_snapshots_chemical(carr_updates, N, times, dt):
     plt.show()
 
 if __name__ == "__main__":
-    nc = create_chemotaxis_array(N, shape = "oval")
+    nc = create_chemotaxis_array(N, shape = "rectangle")
     nt, ct = chemotaxis_eqs(nc)
     narr_updates, carr_updates = numerical_integration_explicit_eulers(nc)
 
-    save_path_density = "animations/chemotaxis_density_a01_k005.gif"
+    save_path_density = "animations/chemotaxis_density_rectangular_a01_k005.gif"
     save_path_chemical = "animations/chemotaxis_chemical_a01_k005.gif"
-    animate_celldensity(narr_updates, N, save_path=save_path_density)
-    animate_chemical(carr_updates, N, save_path=save_path_chemical)
+    animate_celldensity(narr_updates, N, save_path=save_path_density, showing=True)
+    #animate_chemical(carr_updates, N, save_path=save_path_chemical, showing = False)
 
     #plot_static_snapshots_density(narr_updates, N, [1, 10, 50, 100, 150, 200], dt = 0.01)
     #plot_static_snapshots_chemical(carr_updates, N, [0, 10, 50, 100, 150, 200], dt = 0.01)
