@@ -6,12 +6,13 @@ import matplotlib.gridspec as gridspec
 import os
 
 
-alpha = 0.2 #chemotaxis parameter
+alpha = 0.1 #chemotaxis parameter
 k = 0.01 #degradation rate of the chemotactic signal
-D = 0.2 
+D = 0.15
 r = 0.1 
+D2 = 0.25
 N  = 100 
-D2 = 0.15
+
 
 def create_chemotaxis_array(N:int, shape:str = "circle"):
     """
@@ -281,10 +282,10 @@ if __name__ == "__main__":
     nt, ct = chemotaxis_eqs(nc)
     narr_updates, carr_updates = numerical_integration_explicit_eulers(nc)
 
-    save_path_density = ""
-    save_path_chemical = ""
-    animate_celldensity(narr_updates, N, save_path=None)
-    animate_chemical(carr_updates, N, save_path=None)
+    save_path_density = "animations/diffusion_3_chemotaxis_density.gif"
+    save_path_chemical = "animations/diffusion_3_chemotaxis_chemical.gif"
+    animate_celldensity(narr_updates, N, save_path=save_path_density)
+    animate_chemical(carr_updates, N, save_path=save_path_chemical)
     #plot_static_snapshots_density(narr_updates, N, [0, 50, 100, 150, 200, 250, 300, 350], dt = 0.01)
     #plot_static_snapshots_chemical(carr_updates, N, [0, 50, 100, 150, 200, 250, 300, 350], dt = 0.01)
 
