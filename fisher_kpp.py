@@ -5,7 +5,7 @@ import math
 import matplotlib.gridspec as gridspec
 import os #to check if animation already exists
 
-D = 0.05 #according to the paper, D can range anywhere from 10^-8 to 0.15 --> 0.05
+D = 0.15 #according to the paper, D can range anywhere from 10^-8 to 0.15 --> 0.05
 r = 0.1 #according to the paper, r can range anywhere from 10^-6 to 0.5 --> 0.1
 N  = 100 
 
@@ -207,8 +207,8 @@ if __name__ == "__main__":
 
     uarr_updates, varr_updates = numerical_integration_explicit_eulers(uv)
 
-    save_path = f"animations/fkpp_animation_r10e5_D005.gif"
-    #animate_plot(uarr_updates, N, save_path=save_path)
+    save_path = f"animations/fkpp_animation_r01_D015.gif"
+    animate_plot(uarr_updates, N, save_path=save_path)
     #animate_plot(uarr_updates, N)
 
     plot_static_snapshots(uarr_updates, N, dt=0.01, times = [1, 10, 50, 100, 150, 200])
