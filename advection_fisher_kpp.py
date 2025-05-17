@@ -6,7 +6,7 @@ import os
 #defining the parameters
 lambd = 5 #g parameter
 alpha = 1 #parameter for diffusion
-rho = 16.9 #the radius for nonlocal integration
+rho = 16 #the radius for nonlocal integration
 L = 200 #size of domain --> but halved (because domain goes from -L to L)
 dx = 0.5 #spatial integration/derivative step
 dt = 0.01 #time step
@@ -212,6 +212,6 @@ if __name__ == "__main__":
     simulation_arr = simulation(initial_n_condition, T=100, dx=dx, dt=dt)
     #print(simulation_arr) 
     #print(simulation_arr.shape)
-    save_path = "advection_animations/advection_lambda7_rho8"
-    animate_solution(simulation_arr)
+    save_path = "animations/advection_animations/advection_lambda5_rho17.gif"
+    #animate_solution(simulation_arr, save_path=save_path)
     plot_snapshots(simulation_arr, dt=dt, times=(0,10,20, 50, 70, 100))
