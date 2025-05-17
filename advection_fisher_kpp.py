@@ -212,6 +212,6 @@ if __name__ == "__main__":
     simulation_arr = simulation(initial_n_condition, T=100, dx=dx, dt=dt)
     #print(simulation_arr) 
     #print(simulation_arr.shape)
-    save_path = "animations/advection_animations/advection_lambda5_rho17.gif"
-    #animate_solution(simulation_arr, save_path=save_path)
+    save_path = "animations/advection_animations/advection_lambda5_rho16.gif"
+    animate_solution(simulation_arr, save_path=save_path)
     plot_snapshots(simulation_arr, dt=dt, times=(0,10,20, 50, 70, 100))
