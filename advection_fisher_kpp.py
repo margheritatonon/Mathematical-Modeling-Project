@@ -1,11 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import os
 
 #defining the parameters
-lambd = 7 #g parameter
+lambd = 5 #g parameter
 alpha = 1 #parameter for diffusion
-rho = 8 #the radius for nonlocal integration
+rho = 16.9 #the radius for nonlocal integration
 L = 200 #size of domain --> but halved (because domain goes from -L to L)
 dx = 0.5 #spatial integration/derivative step
 dt = 0.01 #time step
@@ -158,10 +159,12 @@ def simulation(initial_n_condition, T, dx=dx, dt=dt):
 
     return sol #this is now a 2D array, where we have "steps" rows and columns of size 2L/dx
 
-def animate_solution(sol, interval=100):
+def animate_solution(sol, interval=100 , save_path = None):
     fig, ax = plt.subplots()
     line, = ax.plot(sol[0])
     ax.set_ylim((-1,2))
+    plt.title(f"λ = {lambd}, ρ = {rho}", fontsize = 30)
+    plt.grid()
 
     def update(frame):
         line.set_ydata(sol[frame])
@@ -170,7 +173,14 @@ def animate_solution(sol, interval=100):
     ani = animation.FuncAnimation(fig, update, frames=range(0, len(sol), 10),
                                   interval=interval, blit=True)
     
-    plt.show()
+    if save_path:
+        if os.path.exists(save_path):
+            raise FileExistsError(f"File '{save_path}' already exists. Unable to save animation. Change path name or delete old file.")
+        ani.save(save_path, writer="ffmpeg", fps=20)
+        print(f"Animation saved to {save_path}")
+        plt.show()
+    else:
+        plt.show()
 
 def plot_snapshots(sol, dt, times, L=L, dx=dx):
     """
@@ -202,5 +212,6 @@ if __name__ == "__main__":
     simulation_arr = simulation(initial_n_condition, T=100, dx=dx, dt=dt)
     #print(simulation_arr) 
     #print(simulation_arr.shape)
+    save_path = "advection_animations/advection_lambda7_rho8"
     animate_solution(simulation_arr)
     plot_snapshots(simulation_arr, dt=dt, times=(0,10,20, 50, 70, 100))
